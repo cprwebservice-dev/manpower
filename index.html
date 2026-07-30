@@ -911,7 +911,35 @@ function showPromptModal({title='ระบุข้อมูล',message='',labe
     setTimeout(()=>input.focus(),0);
   });
 }
-function errorText(error){ return error?.message || error?.details || String(error); }
+function safeErrorValue(value){
+  if(value===null||value===undefined)return '';
+  if(typeof value==='string')return value.trim();
+  if(typeof value==='number'||typeof value==='boolean')return String(value);
+  try{
+    const json=JSON.stringify(value);
+    if(json&&json!=='{}')return json;
+  }catch(_error){}
+  try{return String(value);}catch(_error){return '';}
+}
+function errorText(error){
+  if(!error)return 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ';
+  const candidates=[
+    error.message,
+    error.error_description,
+    error.description,
+    error.details,
+    error.hint,
+    error.cause?.message,
+    error.cause,
+    error.error,
+    error
+  ];
+  for(const candidate of candidates){
+    const value=safeErrorValue(candidate);
+    if(value&&value!=='[object Object]'&&value!=='{}')return value;
+  }
+  return 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ';
+}
 
 async function init(){
   refreshIcons();
@@ -5556,29 +5584,55 @@ function clearPasswordRecoveryUrl(){
   window.history.replaceState({},document.title,`${url.pathname}${url.search}`);
 }
 
-function passwordResetErrorMessage(error){
+function passwordResetErrorMeta(error){
+  const status=Number(error?.status||error?.statusCode||error?.cause?.status||0)||0;
+  const code=safeErrorValue(error?.code||error?.error_code||error?.cause?.code).toLowerCase();
+  const name=safeErrorValue(error?.name).toLowerCase();
   const message=errorText(error);
-  const lower=message.toLowerCase();
-  if(lower.includes('rate limit')||lower.includes('too many requests')){
-    return 'ส่งอีเมลถี่เกินข้อจำกัดของ Supabase กรุณารออย่างน้อย 60 วินาทีแล้วลองใหม่ หรือตรวจสอบ Authentication > Rate Limits และ Custom SMTP';
+  const raw=[message,code,name,safeErrorValue(error?.details),safeErrorValue(error?.cause)].filter(Boolean).join(' ').toLowerCase();
+  return {status,code,name,message,raw};
+}
+function passwordResetErrorMessage(error){
+  const meta=passwordResetErrorMeta(error);
+  const lower=meta.raw;
+
+  if(meta.status===429||lower.includes('rate limit')||lower.includes('too many requests')||lower.includes('over_request_rate_limit')||lower.includes('email rate limit exceeded')){
+    return 'ส่งอีเมลถี่เกินข้อจำกัดของ Supabase กรุณารออย่างน้อย 60 วินาทีแล้วลองใหม่ หากใช้ระบบอีเมลเริ่มต้นของ Supabase จะมีโควตารวมต่ำมาก ควรตั้งค่า Custom SMTP ที่ Authentication > Emails > SMTP Settings';
   }
-  if(lower.includes('redirect')){
-    return `Redirect URL ยังไม่ได้รับอนุญาตใน Supabase กรุณาเพิ่ม URL นี้ใน Authentication > URL Configuration: ${passwordRecoveryRedirectUrl()}`;
+  if(lower.includes('email address not authorized')||lower.includes('email_address_not_authorized')||lower.includes('not authorized')){
+    return 'Supabase ไม่อนุญาตให้ส่งอีเมลไปยังผู้ใช้นี้ เพราะ Project ยังใช้ระบบอีเมลเริ่มต้น ซึ่งส่งได้เฉพาะอีเมลสมาชิกของ Supabase Organization เท่านั้น กรุณาตั้งค่า Custom SMTP ที่ Authentication > Emails > SMTP Settings แล้วลองใหม่';
   }
-  if(lower.includes('email')&&lower.includes('send')){
-    return 'ไม่สามารถส่งอีเมลได้ กรุณาตรวจสอบ Authentication Logs, Email Template และ Custom SMTP ใน Supabase';
+  if(lower.includes('redirect')||lower.includes('redirect_to')||lower.includes('url not allowed')){
+    return `Redirect URL ยังไม่ได้รับอนุญาตใน Supabase กรุณาเพิ่ม URL ต่อไปนี้ใน Authentication > URL Configuration > Redirect URLs:\n${passwordRecoveryRedirectUrl()}`;
   }
-  return message;
+  if(lower.includes('failed to fetch')||lower.includes('networkerror')||lower.includes('failed to make post request')||lower.includes('fetch')){
+    return `เชื่อมต่อ Supabase Auth ไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ต, Auth Logs และ URL ของเว็บไซต์\nRedirect URL: ${passwordRecoveryRedirectUrl()}`;
+  }
+  if((lower.includes('smtp')||lower.includes('email'))&&(lower.includes('send')||lower.includes('delivery')||lower.includes('provider'))){
+    return 'Supabase ส่งอีเมลไม่สำเร็จ กรุณาตรวจสอบ Authentication > Logs และการตั้งค่า Custom SMTP รวมถึงอีเมลผู้ส่งและรหัสผ่าน SMTP';
+  }
+
+  const diagnostic=[
+    meta.message&&meta.message!=='เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ'?meta.message:'',
+    meta.code?`Code: ${meta.code}`:'',
+    meta.status?`HTTP Status: ${meta.status}`:''
+  ].filter(Boolean).join('\n');
+  return diagnostic||'ส่งลิงก์ Reset Password ไม่สำเร็จ กรุณาตรวจสอบ Supabase Authentication Logs เพื่อดูสาเหตุ และตรวจสอบ Custom SMTP กับ Redirect URLs';
 }
 
 async function requestPasswordResetEmail(email){
   const targetEmail=normalizedEmail(email);
   if(!targetEmail)throw new Error('กรุณาระบุอีเมล');
-  const {error}=await dbClient.auth.resetPasswordForEmail(targetEmail,{
-    redirectTo:passwordRecoveryRedirectUrl()
-  });
-  if(error)throw new Error(passwordResetErrorMessage(error));
-  return targetEmail;
+  if(!/^https?:$/.test(window.location.protocol)){
+    throw new Error('กรุณาเปิดระบบผ่าน URL แบบ http:// หรือ https:// ก่อนส่งลิงก์ Reset Password ไม่รองรับการเปิดไฟล์ HTML โดยตรง');
+  }
+  const redirectTo=passwordRecoveryRedirectUrl();
+  const {data,error}=await dbClient.auth.resetPasswordForEmail(targetEmail,{redirectTo});
+  if(error){
+    console.error('Supabase resetPasswordForEmail failed',{email:targetEmail,redirectTo,error});
+    throw error;
+  }
+  return {email:targetEmail,data,redirectTo};
 }
 
 function openForgotPasswordModal(){
@@ -5611,6 +5665,7 @@ async function submitForgotPassword(event){
     await showNoticeModal({type:'success',title:'ส่งลิงก์แล้ว',message:`ระบบส่งลิงก์ตั้งรหัสผ่านใหม่ไปยัง ${email}
 กรุณาตรวจสอบ Inbox และ Junk/Spam และใช้ลิงก์จากอีเมลฉบับล่าสุด`});
   }catch(error){
+    console.error('Forgot password request failed',error);
     toast(passwordResetErrorMessage(error),'error');
   }finally{showLoading(false);}
 }
@@ -5637,6 +5692,7 @@ ${targetEmail}
     await requestPasswordResetEmail(targetEmail);
     toast(`ส่งลิงก์ Reset Password ไปยัง ${targetEmail} แล้ว`,'success');
   }catch(error){
+    console.error('Admin password reset request failed',error);
     toast(passwordResetErrorMessage(error),'error');
   }finally{showLoading(false);}
 }
