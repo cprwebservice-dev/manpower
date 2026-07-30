@@ -368,6 +368,9 @@ const dbClient = window.supabase.createClient(SB_URL, SB_PUBLISHABLE_KEY);</pre>
           <button class="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 font-bold text-white hover:bg-blue-700">
             <i data-lucide="log-in" class="h-5 w-5"></i> เข้าสู่ระบบ
           </button>
+          <button type="button" onclick="openForgotPasswordModal()" class="flex h-10 w-full items-center justify-center gap-2 rounded-xl text-sm font-bold text-blue-700 transition hover:bg-blue-50">
+            <i data-lucide="key-round" class="h-4 w-4"></i>ลืมรหัสผ่าน / ขอรหัสผ่านใหม่
+          </button>
         </form>
         <div class="mt-5 rounded-xl border border-blue-200 bg-blue-50 p-3 text-xs leading-6 text-blue-800">
           ต้องเข้าสู่ระบบด้วยบัญชี Supabase Auth ที่ได้รับอนุญาตเท่านั้น
@@ -665,7 +668,7 @@ const dbClient = window.supabase.createClient(SB_URL, SB_PUBLISHABLE_KEY);</pre>
         </div>
 
         <div class="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-          <div class="flex items-start gap-3"><i data-lucide="shield-alert" class="mt-0.5 h-5 w-5 shrink-0"></i><div><b>การจัดการผ่านหน้านี้เป็นสิทธิ์ระดับ Application</b><div class="mt-1 text-xs leading-6">การสร้างหรือลบบัญชี Supabase Auth ต้องดำเนินการในเมนู Supabase Auth โดยใช้บัญชีผู้ดูแล Project ส่วนการกำหนด Role และ User Scope ทำได้จากหน้านี้</div></div></div>
+          <div class="flex items-start gap-3"><i data-lucide="shield-alert" class="mt-0.5 h-5 w-5 shrink-0"></i><div><b>การจัดการผ่านหน้านี้เป็นสิทธิ์ระดับ Application</b><div class="mt-1 text-xs leading-6">การสร้างหรือลบบัญชี Supabase Auth ต้องดำเนินการในเมนู Supabase Auth โดยใช้บัญชีผู้ดูแล Project ส่วนการกำหนด Role, User Scope และการส่งลิงก์ Reset Password ทำได้จากหน้านี้ โดยต้องตั้ง Redirect URL และระบบอีเมลใน Supabase ให้เรียบร้อย</div></div></div>
         </div>
       </section>
 
@@ -761,6 +764,7 @@ const state = {
   spotlightMetrics:{movement2026Count:0,movement2027Count:0,movement2026Pct:0,movement2027Pct:0},
   sectionCollapsed:{ulPromote:true,dashboard:true,spotlight:true,workflow:false},
   treeOpenOffices:new Set(), treeOpenGroups:new Set(),
+  passwordRecoveryMode:false, appStarted:false,
   userAdmin:{profiles:[],scopes:[],orgUnits:[],loaded:false,view:'users',scopeDraft:null}
 };
 
@@ -914,17 +918,46 @@ async function init(){
   if(SB_URL.includes('YOUR_PROJECT') || SB_PUBLISHABLE_KEY.includes('YOUR_')){
     $('setupScreen').classList.remove('hidden'); $('setupScreen').classList.add('flex'); return;
   }
+
+  // สมัคร Auth listener ก่อนอ่าน Session เพื่อไม่ให้พลาด PASSWORD_RECOVERY event
+  dbClient.auth.onAuthStateChange((event,newSession)=>{
+    state.session=newSession;
+
+    if(event==='PASSWORD_RECOVERY'){
+      state.passwordRecoveryMode=true;
+      setTimeout(()=>openPasswordRecoveryModal(),0);
+      return;
+    }
+
+    if(event==='SIGNED_OUT'){
+      state.appStarted=false;
+      state.profile=null;
+      state.passwordRecoveryMode=false;
+      return;
+    }
+
+    if(event==='SIGNED_IN'&&newSession&&!state.passwordRecoveryMode&&!state.appStarted){
+      setTimeout(()=>startApp(),0);
+    }
+  });
+
   const {data:{session}} = await dbClient.auth.getSession();
   state.session=session;
-  if(session) await startApp(); else showAuth();
-  dbClient.auth.onAuthStateChange(async (_event,newSession)=>{
-    state.session=newSession;
-    if(newSession) await startApp();
-  });
+
+  if(session&&isPasswordRecoveryReturn()){
+    state.passwordRecoveryMode=true;
+    openPasswordRecoveryModal();
+  }else if(session){
+    await startApp();
+  }else{
+    showAuth();
+  }
 }
 
 function showAuth(){ $('authScreen').classList.remove('hidden'); $('authScreen').classList.add('flex'); refreshIcons(); }
 async function startApp(){
+  if(state.appStarted)return;
+  state.appStarted=true;
   $('authScreen').classList.add('hidden');
   $('authScreen').classList.remove('flex');
   $('app').classList.remove('hidden');
@@ -961,6 +994,7 @@ async function startApp(){
     renderActions();
 
   }catch(error){
+    state.appStarted=false;
     toast(errorText(error),'error');
   }finally{
     showLoading(false);
@@ -5501,6 +5535,182 @@ function openSupabaseAuthUsers(){
   window.open('https://supabase.com/dashboard/project/pvrtdikrplohucipatdd/auth/users','_blank','noopener,noreferrer');
 }
 
+function passwordRecoveryRedirectUrl(){
+  const url=new URL(window.location.href);
+  url.hash='';
+  url.search='';
+  url.searchParams.set('mode','reset-password');
+  return url.toString();
+}
+
+function isPasswordRecoveryReturn(){
+  const params=new URLSearchParams(window.location.search);
+  const hash=String(window.location.hash||'');
+  return params.get('mode')==='reset-password'||hash.includes('type=recovery');
+}
+
+function clearPasswordRecoveryUrl(){
+  const url=new URL(window.location.href);
+  url.searchParams.delete('mode');
+  url.hash='';
+  window.history.replaceState({},document.title,`${url.pathname}${url.search}`);
+}
+
+function passwordResetErrorMessage(error){
+  const message=errorText(error);
+  const lower=message.toLowerCase();
+  if(lower.includes('rate limit')||lower.includes('too many requests')){
+    return 'ส่งอีเมลถี่เกินข้อจำกัดของ Supabase กรุณารออย่างน้อย 60 วินาทีแล้วลองใหม่ หรือตรวจสอบ Authentication > Rate Limits และ Custom SMTP';
+  }
+  if(lower.includes('redirect')){
+    return `Redirect URL ยังไม่ได้รับอนุญาตใน Supabase กรุณาเพิ่ม URL นี้ใน Authentication > URL Configuration: ${passwordRecoveryRedirectUrl()}`;
+  }
+  if(lower.includes('email')&&lower.includes('send')){
+    return 'ไม่สามารถส่งอีเมลได้ กรุณาตรวจสอบ Authentication Logs, Email Template และ Custom SMTP ใน Supabase';
+  }
+  return message;
+}
+
+async function requestPasswordResetEmail(email){
+  const targetEmail=normalizedEmail(email);
+  if(!targetEmail)throw new Error('กรุณาระบุอีเมล');
+  const {error}=await dbClient.auth.resetPasswordForEmail(targetEmail,{
+    redirectTo:passwordRecoveryRedirectUrl()
+  });
+  if(error)throw new Error(passwordResetErrorMessage(error));
+  return targetEmail;
+}
+
+function openForgotPasswordModal(){
+  const preset=normalizedEmail($('loginEmail')?.value||'');
+  openModal(`<form onsubmit="submitForgotPassword(event)" class="overflow-hidden">
+    <div class="flex items-start gap-3 border-b border-slate-200 p-5">
+      <div class="rounded-xl bg-blue-50 p-2.5 text-blue-700"><i data-lucide="key-round" class="h-6 w-6"></i></div>
+      <div class="min-w-0 flex-1"><h3 class="text-xl font-extrabold text-slate-900">ขอเปลี่ยนรหัสผ่าน</h3><p class="mt-1 text-sm text-slate-500">Supabase จะส่งลิงก์สำหรับตั้งรหัสผ่านใหม่ไปยังอีเมลของคุณ</p></div>
+      <button type="button" onclick="closeModal()" class="rounded-lg p-2 text-slate-500 hover:bg-slate-100"><i data-lucide="x" class="h-5 w-5"></i></button>
+    </div>
+    <div class="space-y-4 p-5">
+      <label class="block text-sm font-bold text-slate-700">อีเมล <span class="text-red-500">*</span><input id="forgotPasswordEmail" type="email" required value="${esc(preset)}" class="mt-1 h-11 w-full rounded-xl border border-slate-300 px-3 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100" placeholder="name@company.com" /></label>
+      <div class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-6 text-amber-800"><b>หมายเหตุ:</b> ลิงก์ใช้ได้ครั้งเดียวและมีอายุจำกัด หากเคยขอลิงก์หลายครั้ง ให้ใช้เฉพาะอีเมลฉบับล่าสุด</div>
+    </div>
+    <div class="flex flex-col-reverse gap-2 border-t border-slate-200 bg-slate-50 p-4 sm:flex-row sm:justify-end">
+      <button type="button" onclick="closeModal()" class="h-11 rounded-xl border border-slate-300 bg-white px-5 font-bold text-slate-700">ยกเลิก</button>
+      <button type="submit" class="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 font-extrabold text-white hover:bg-blue-700"><i data-lucide="send" class="h-4 w-4"></i>ส่งลิงก์ Reset Password</button>
+    </div>
+  </form>`);
+  setTimeout(()=>$('forgotPasswordEmail')?.focus(),0);
+}
+
+async function submitForgotPassword(event){
+  event.preventDefault();
+  const email=normalizedEmail($('forgotPasswordEmail')?.value);
+  showLoading(true,'กำลังส่งลิงก์ Reset Password...');
+  try{
+    await requestPasswordResetEmail(email);
+    closeModal();
+    await showNoticeModal({type:'success',title:'ส่งลิงก์แล้ว',message:`ระบบส่งลิงก์ตั้งรหัสผ่านใหม่ไปยัง ${email}
+กรุณาตรวจสอบ Inbox และ Junk/Spam และใช้ลิงก์จากอีเมลฉบับล่าสุด`});
+  }catch(error){
+    toast(passwordResetErrorMessage(error),'error');
+  }finally{showLoading(false);}
+}
+
+async function sendAdminPasswordReset(email){
+  if(!canManageUsers())return toast('เฉพาะ HR Admin เท่านั้นที่ส่งลิงก์ Reset Password ได้','error');
+  const targetEmail=normalizedEmail(email);
+  const profile=(state.userAdmin.profiles||[]).find(item=>normalizedEmail(item.email)===targetEmail);
+  if(!profile?.auth_user_id)return toast('ผู้ใช้นี้ยังไม่เชื่อม Supabase Auth กรุณาเชิญผู้ใช้ใน Auth ก่อน','warning');
+  const confirmed=await showConfirmModal({
+    title:'ส่งลิงก์ Reset Password',
+    message:`ส่งลิงก์ตั้งรหัสผ่านใหม่ให้ ${profile.display_name||targetEmail}
+${targetEmail}
+
+ผู้ใช้ต้องเปิดอีเมลฉบับล่าสุดและตั้งรหัสผ่านด้วยตนเอง`,
+    confirmText:'ส่งลิงก์',
+    cancelText:'ยกเลิก',
+    tone:'blue',
+    icon:'key-round'
+  });
+  if(!confirmed)return;
+  showLoading(true,'กำลังส่งลิงก์ Reset Password...');
+  try{
+    await requestPasswordResetEmail(targetEmail);
+    toast(`ส่งลิงก์ Reset Password ไปยัง ${targetEmail} แล้ว`,'success');
+  }catch(error){
+    toast(passwordResetErrorMessage(error),'error');
+  }finally{showLoading(false);}
+}
+
+function openPasswordRecoveryModal(){
+  state.passwordRecoveryMode=true;
+  $('authScreen')?.classList.add('hidden');
+  $('authScreen')?.classList.remove('flex');
+  openModal(`<form onsubmit="submitRecoveredPassword(event)" class="overflow-hidden">
+    <div class="bg-gradient-to-r from-[#082e61] via-[#0b447f] to-[#1269df] p-5 text-white">
+      <div class="flex items-start gap-3">
+        <div class="rounded-xl bg-white/15 p-2.5"><i data-lucide="shield-check" class="h-6 w-6"></i></div>
+        <div class="min-w-0 flex-1"><h3 class="text-xl font-extrabold">ตั้งรหัสผ่านใหม่</h3><p class="mt-1 text-sm text-blue-100">กรอกรหัสผ่านใหม่สำหรับบัญชี ${esc(state.session?.user?.email||'')}</p></div>
+      </div>
+    </div>
+    <div class="space-y-4 p-5">
+      <label class="block text-sm font-bold text-slate-700">รหัสผ่านใหม่ <span class="text-red-500">*</span>
+        <div class="relative mt-1"><input id="recoveryNewPassword" type="password" minlength="8" required autocomplete="new-password" class="h-11 w-full rounded-xl border border-slate-300 px-3 pr-11 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100" placeholder="อย่างน้อย 8 ตัวอักษร" /><button type="button" onclick="togglePasswordField('recoveryNewPassword',this)" class="absolute right-2 top-1.5 grid h-8 w-8 place-items-center rounded-lg text-slate-400 hover:bg-slate-100"><i data-lucide="eye" class="h-4 w-4"></i></button></div>
+      </label>
+      <label class="block text-sm font-bold text-slate-700">ยืนยันรหัสผ่านใหม่ <span class="text-red-500">*</span>
+        <div class="relative mt-1"><input id="recoveryConfirmPassword" type="password" minlength="8" required autocomplete="new-password" class="h-11 w-full rounded-xl border border-slate-300 px-3 pr-11 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100" placeholder="กรอกรหัสผ่านเดิมอีกครั้ง" /><button type="button" onclick="togglePasswordField('recoveryConfirmPassword',this)" class="absolute right-2 top-1.5 grid h-8 w-8 place-items-center rounded-lg text-slate-400 hover:bg-slate-100"><i data-lucide="eye" class="h-4 w-4"></i></button></div>
+      </label>
+      <div id="recoveryPasswordError" class="hidden rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700"></div>
+      <div class="rounded-xl border border-blue-200 bg-blue-50 p-3 text-xs leading-6 text-blue-800">รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร และอาจต้องผ่านเงื่อนไข Password Strength ที่ตั้งไว้ใน Supabase Project</div>
+    </div>
+    <div class="flex flex-col-reverse gap-2 border-t border-slate-200 bg-slate-50 p-4 sm:flex-row sm:justify-end">
+      <button type="button" onclick="cancelPasswordRecovery()" class="h-11 rounded-xl border border-slate-300 bg-white px-5 font-bold text-slate-700">กลับหน้าเข้าสู่ระบบ</button>
+      <button type="submit" class="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 font-extrabold text-white hover:bg-blue-700"><i data-lucide="save" class="h-4 w-4"></i>บันทึกรหัสผ่านใหม่</button>
+    </div>
+  </form>`);
+  setTimeout(()=>$('recoveryNewPassword')?.focus(),0);
+}
+
+function togglePasswordField(inputId,button){
+  const input=$(inputId);
+  if(!input)return;
+  const visible=input.type==='text';
+  input.type=visible?'password':'text';
+  button.innerHTML=`<i data-lucide="${visible?'eye':'eye-off'}" class="h-4 w-4"></i>`;
+  refreshIcons();
+}
+
+async function submitRecoveredPassword(event){
+  event.preventDefault();
+  const password=String($('recoveryNewPassword')?.value||'');
+  const confirmPassword=String($('recoveryConfirmPassword')?.value||'');
+  const errorBox=$('recoveryPasswordError');
+  const showError=message=>{if(errorBox){errorBox.textContent=message;errorBox.classList.remove('hidden');}};
+  if(password.length<8)return showError('รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร');
+  if(password!==confirmPassword)return showError('รหัสผ่านทั้งสองช่องไม่ตรงกัน');
+  errorBox?.classList.add('hidden');
+  showLoading(true,'กำลังบันทึกรหัสผ่านใหม่...');
+  try{
+    const {error}=await dbClient.auth.updateUser({password});
+    if(error)throw error;
+    state.passwordRecoveryMode=false;
+    clearPasswordRecoveryUrl();
+    closeModal();
+    await showNoticeModal({type:'success',title:'เปลี่ยนรหัสผ่านสำเร็จ',message:'บันทึกรหัสผ่านใหม่แล้ว ระบบจะเข้าสู่หน้าหลักด้วยบัญชีนี้'});
+    await startApp();
+  }catch(error){
+    showError(passwordResetErrorMessage(error));
+  }finally{showLoading(false);}
+}
+
+async function cancelPasswordRecovery(){
+  closeModal();
+  clearPasswordRecoveryUrl();
+  state.passwordRecoveryMode=false;
+  state.appStarted=false;
+  await dbClient.auth.signOut();
+  location.reload();
+}
+
 async function loadUserManagement(force=false){
   if(!canManageUsers())return toast('เฉพาะ HR Admin เท่านั้นที่จัดการผู้ใช้งานได้','error');
   if(state.userAdmin.loaded&&!force){renderUserManagement();return;}
@@ -5585,7 +5795,7 @@ function renderUserManagement(){
       <td class="text-center">${isUser?`<button type="button" onclick="openUserScopeModal('${esc(email)}')" class="rounded-full bg-blue-50 px-3 py-1 text-xs font-extrabold text-blue-700 hover:bg-blue-100">${fmt(scopeCounts.get(email)||0)} ULHANA</button>`:'<span class="text-xs font-semibold text-slate-400">ทุก ULHANA</span>'}</td>
       <td class="text-center">${userProfileActive(profile)?'<span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700">ใช้งาน</span>':'<span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-500">ปิดใช้งาน</span>'}</td>
       <td class="text-center text-xs text-slate-500">${formatAdminDate(profile.updated_at||profile.created_at)}</td>
-      <td class="text-center"><div class="inline-flex gap-1"><button type="button" onclick="openUserProfileModal('${esc(profile.id||'')}')" class="grid h-9 w-9 place-items-center rounded-lg border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100" title="แก้ไขผู้ใช้งาน"><i data-lucide="pencil" class="h-4 w-4"></i></button>${isUser?`<button type="button" onclick="openUserScopeModal('${esc(email)}')" class="grid h-9 w-9 place-items-center rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100" title="กำหนด User Scope"><i data-lucide="network" class="h-4 w-4"></i></button>`:''}</div></td>
+      <td class="text-center"><div class="inline-flex gap-1"><button type="button" onclick="openUserProfileModal('${esc(profile.id||'')}')" class="grid h-9 w-9 place-items-center rounded-lg border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100" title="แก้ไขผู้ใช้งาน"><i data-lucide="pencil" class="h-4 w-4"></i></button>${profile.auth_user_id?`<button type="button" onclick="sendAdminPasswordReset('${esc(email)}')" class="grid h-9 w-9 place-items-center rounded-lg border border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100" title="ส่งลิงก์ Reset Password"><i data-lucide="key-round" class="h-4 w-4"></i></button>`:`<button type="button" disabled class="grid h-9 w-9 cursor-not-allowed place-items-center rounded-lg border border-slate-200 bg-slate-100 text-slate-400" title="ยังไม่เชื่อม Supabase Auth"><i data-lucide="key-round" class="h-4 w-4"></i></button>`}${isUser?`<button type="button" onclick="openUserScopeModal('${esc(email)}')" class="grid h-9 w-9 place-items-center rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100" title="กำหนด User Scope"><i data-lucide="network" class="h-4 w-4"></i></button>`:''}</div></td>
     </tr>`;
   }).join(''):`<tr><td colspan="8" class="p-10 text-center text-slate-400"><i data-lucide="user-search" class="mx-auto mb-2 h-8 w-8"></i>ไม่พบผู้ใช้งานตามตัวกรอง</td></tr>`;
 
@@ -5637,7 +5847,7 @@ function openUserProfileModal(profileId=''){
       <label class="text-sm font-bold text-slate-700">สถานะ<div class="mt-1 flex h-11 items-center gap-3 rounded-xl border border-slate-300 px-3 ${isSelf?'bg-slate-100':''}"><input id="manageUserActive" type="checkbox" ${userProfileActive(profile)||!profile?'checked':''} ${isSelf?'disabled':''} class="h-5 w-5 rounded border-slate-300 text-blue-600" /><span>อนุญาตให้เข้าใช้งาน Application</span></div></label>
       <div class="sm:col-span-2 rounded-xl border ${profile?.auth_user_id?'border-emerald-200 bg-emerald-50 text-emerald-800':'border-amber-200 bg-amber-50 text-amber-900'} p-3 text-sm"><div class="flex items-start gap-2"><i data-lucide="${profile?.auth_user_id?'shield-check':'mail-warning'}" class="mt-0.5 h-5 w-5 shrink-0"></i><div><b>${profile?.auth_user_id?'เชื่อมต่อ Supabase Auth แล้ว':'ยังไม่เชื่อม Supabase Auth'}</b><div class="mt-1 text-xs leading-6">${profile?.auth_user_id?'ผู้ใช้สามารถ Login ด้วยบัญชี Auth นี้ได้ตาม Role และ Scope ที่กำหนด':'หลังบันทึก Profile ให้เชิญอีเมลนี้ที่ Supabase Auth > Users เมื่อ Login ครั้งแรก ระบบจะผูก Auth User กับ Profile อัตโนมัติ'}</div></div></div></div>
     </div>
-    <div class="flex flex-col-reverse gap-2 border-t border-slate-200 bg-slate-50 p-4 sm:flex-row sm:justify-end"><button type="button" onclick="closeModal()" class="h-11 rounded-xl border border-slate-300 bg-white px-5 font-bold text-slate-700">ยกเลิก</button><button type="submit" class="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 font-extrabold text-white hover:bg-blue-700"><i data-lucide="save" class="h-4 w-4"></i>บันทึกผู้ใช้งาน</button></div>
+    <div class="flex flex-col-reverse gap-2 border-t border-slate-200 bg-slate-50 p-4 sm:flex-row sm:justify-end">${profile?.auth_user_id?`<button type="button" onclick="closeModal();sendAdminPasswordReset('${esc(normalizedEmail(profile.email))}')" class="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-violet-200 bg-violet-50 px-5 font-bold text-violet-700 hover:bg-violet-100"><i data-lucide="key-round" class="h-4 w-4"></i>ส่ง Reset Password</button>`:''}<button type="button" onclick="closeModal()" class="h-11 rounded-xl border border-slate-300 bg-white px-5 font-bold text-slate-700">ยกเลิก</button><button type="submit" class="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 font-extrabold text-white hover:bg-blue-700"><i data-lucide="save" class="h-4 w-4"></i>บันทึกผู้ใช้งาน</button></div>
   </form>`);
 }
 
