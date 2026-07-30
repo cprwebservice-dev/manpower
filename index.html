@@ -5567,7 +5567,6 @@ function passwordRecoveryRedirectUrl(){
   const url=new URL(window.location.href);
   url.hash='';
   url.search='';
-  url.searchParams.set('mode','reset-password');
   return url.toString();
 }
 
@@ -5620,6 +5619,35 @@ function passwordResetErrorMessage(error){
   return diagnostic||'ส่งลิงก์ Reset Password ไม่สำเร็จ กรุณาตรวจสอบ Supabase Authentication Logs เพื่อดูสาเหตุ และตรวจสอบ Custom SMTP กับ Redirect URLs';
 }
 
+async function checkSupabaseAuthHealth(){
+  const settingsUrl=`${SB_URL.replace(/\/$/,'')}/auth/v1/settings`;
+  try{
+    const response=await fetch(settingsUrl,{
+      method:'GET',
+      headers:{apikey:SB_PUBLISHABLE_KEY},
+      cache:'no-store'
+    });
+    const body=await response.text().catch(()=> '');
+    return {ok:response.ok,status:response.status,body,url:settingsUrl};
+  }catch(error){
+    return {ok:false,status:0,body:'',url:settingsUrl,error};
+  }
+}
+
+async function enrichPasswordResetError(error){
+  const meta=passwordResetErrorMeta(error);
+  const retryable=meta.name.includes('authretryablefetcherror')||[502,503,504].includes(meta.status)||meta.raw.includes('failed to make a post request');
+  if(!retryable)return error;
+  const health=await checkSupabaseAuthHealth();
+  const enriched=new Error(meta.message||'ส่งลิงก์ Reset Password ไม่สำเร็จ');
+  enriched.name=error?.name||'PasswordResetError';
+  enriched.status=meta.status||health.status||0;
+  enriched.code=meta.code||'';
+  enriched.authHealth=health;
+  enriched.originalError=error;
+  return enriched;
+}
+
 async function requestPasswordResetEmail(email){
   const targetEmail=normalizedEmail(email);
   if(!targetEmail)throw new Error('กรุณาระบุอีเมล');
@@ -5629,8 +5657,9 @@ async function requestPasswordResetEmail(email){
   const redirectTo=passwordRecoveryRedirectUrl();
   const {data,error}=await dbClient.auth.resetPasswordForEmail(targetEmail,{redirectTo});
   if(error){
-    console.error('Supabase resetPasswordForEmail failed',{email:targetEmail,redirectTo,error});
-    throw error;
+    const enrichedError=await enrichPasswordResetError(error);
+    console.error('Supabase resetPasswordForEmail failed',{email:targetEmail,redirectTo,error,authHealth:enrichedError?.authHealth||null});
+    throw enrichedError;
   }
   return {email:targetEmail,data,redirectTo};
 }
