@@ -514,7 +514,7 @@ const dbClient = window.supabase.createClient(SB_URL, SB_PUBLISHABLE_KEY);</pre>
             <div id="ulContext" class="grid grid-cols-2 gap-2 text-sm md:grid-cols-4"></div>
             <div class="flex gap-2">
               <button id="refreshPlanningBtn" class="h-11 rounded-xl border border-blue-200 bg-blue-50 px-4 font-semibold text-blue-700"><i data-lucide="refresh-cw" class="mr-1 inline h-4 w-4"></i>รีเฟรช</button>
-              <button id="rebuildBtn" class="h-11 rounded-xl bg-slate-800 px-4 font-semibold text-white"><i data-lucide="calculator" class="mr-1 inline h-4 w-4"></i>ประมวลผล</button>
+              <button id="rebuildBtn" data-super-admin-only class="hidden h-11 rounded-xl bg-slate-800 px-4 font-semibold text-white"><i data-lucide="calculator" class="mr-1 inline h-4 w-4"></i>ประมวลผล</button>
             </div>
           </div>
         </div>
@@ -4404,7 +4404,7 @@ async function cancelMovement(id){
   }
 }
 
-async function rebuildSummary(){showLoading(true,'กำลังประมวลผลฐานกำลังคน...');const {data,error}=await dbClient.rpc('rebuild_workforce_summaries');showLoading(false);if(error)return toast(errorText(error),'error');await Promise.all([loadDashboard(),loadPlanning(state.currentUlId)]);toast(`ประมวลผล ${data?.rows||0} รายการเรียบร้อย`,'success')}
+async function rebuildSummary(){if(!isSuperAdmin())return toast('เฉพาะ Super Admin เท่านั้นที่สามารถประมวลผลได้','error');showLoading(true,'กำลังประมวลผลฐานกำลังคน...');const {data,error}=await dbClient.rpc('rebuild_workforce_summaries');showLoading(false);if(error)return toast(errorText(error),'error');await Promise.all([loadDashboard(),loadPlanning(state.currentUlId)]);toast(`ประมวลผล ${data?.rows||0} รายการเรียบร้อย`,'success')}
 const EXCEL_EXPORT_GROUPS=[
   {key:'act26_current',label:'กำลังคนปัจจุบัน 1/8/26 | ACT26'},
   {key:'ol26',label:'ประมาณการแผนคน ถึง 31/12/26 | OL26'},
