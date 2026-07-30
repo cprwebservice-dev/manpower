@@ -368,12 +368,9 @@ const dbClient = window.supabase.createClient(SB_URL, SB_PUBLISHABLE_KEY);</pre>
           <button class="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 font-bold text-white hover:bg-blue-700">
             <i data-lucide="log-in" class="h-5 w-5"></i> เข้าสู่ระบบ
           </button>
-          <button type="button" onclick="openForgotPasswordModal()" class="flex h-10 w-full items-center justify-center gap-2 rounded-xl text-sm font-bold text-blue-700 transition hover:bg-blue-50">
-            <i data-lucide="key-round" class="h-4 w-4"></i>ลืมรหัสผ่าน / ขอรหัสผ่านใหม่
-          </button>
         </form>
         <div class="mt-5 rounded-xl border border-blue-200 bg-blue-50 p-3 text-xs leading-6 text-blue-800">
-          ต้องเข้าสู่ระบบด้วยบัญชี Supabase Auth ที่ได้รับอนุญาตเท่านั้น
+          ต้องเข้าสู่ระบบด้วยบัญชี Supabase Auth ที่ได้รับอนุญาตเท่านั้น หากลืมรหัสผ่านกรุณาติดต่อ HR Admin เพื่อกำหนดรหัสผ่านใหม่
         </div>
       </section>
     </div>
@@ -668,7 +665,7 @@ const dbClient = window.supabase.createClient(SB_URL, SB_PUBLISHABLE_KEY);</pre>
         </div>
 
         <div class="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-          <div class="flex items-start gap-3"><i data-lucide="shield-alert" class="mt-0.5 h-5 w-5 shrink-0"></i><div><b>การจัดการผ่านหน้านี้เป็นสิทธิ์ระดับ Application</b><div class="mt-1 text-xs leading-6">การสร้างหรือลบบัญชี Supabase Auth ต้องดำเนินการในเมนู Supabase Auth โดยใช้บัญชีผู้ดูแล Project ส่วนการกำหนด Role, User Scope และการส่งลิงก์ Reset Password ทำได้จากหน้านี้ โดยต้องตั้ง Redirect URL และระบบอีเมลใน Supabase ให้เรียบร้อย</div></div></div>
+          <div class="flex items-start gap-3"><i data-lucide="shield-alert" class="mt-0.5 h-5 w-5 shrink-0"></i><div><b>การจัดการผ่านหน้านี้เป็นสิทธิ์ระดับ Application</b><div class="mt-1 text-xs leading-6">การสร้างหรือลบบัญชี Supabase Auth ต้องดำเนินการในเมนู Supabase Auth โดยใช้บัญชีผู้ดูแล Project ส่วนการกำหนด Role, User Scope และการกำหนดรหัสผ่านใหม่สำหรับผู้ใช้ Role User ทำได้จากหน้านี้ผ่าน Supabase Edge Function โดยไม่ต้องส่งอีเมล Reset Password</div></div></div>
         </div>
       </section>
 
@@ -5796,6 +5793,114 @@ async function cancelPasswordRecovery(){
   location.reload();
 }
 
+
+function generateAdminTemporaryPassword(){
+  const upper='ABCDEFGHJKLMNPQRSTUVWXYZ';
+  const lower='abcdefghijkmnopqrstuvwxyz';
+  const digits='23456789';
+  const symbols='!@#$%_-';
+  const all=upper+lower+digits+symbols;
+  const randomChar=chars=>chars[Math.floor(Math.random()*chars.length)];
+  const chars=[randomChar(upper),randomChar(lower),randomChar(digits),randomChar(symbols)];
+  while(chars.length<14)chars.push(randomChar(all));
+  for(let i=chars.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [chars[i],chars[j]]=[chars[j],chars[i]];
+  }
+  const password=chars.join('');
+  if($('adminNewPassword'))$('adminNewPassword').value=password;
+  if($('adminConfirmPassword'))$('adminConfirmPassword').value=password;
+  if($('adminPasswordError'))$('adminPasswordError').classList.add('hidden');
+}
+
+function openAdminSetPasswordModal(profileId=''){
+  if(!canManageUsers())return toast('เฉพาะ HR Admin เท่านั้นที่กำหนดรหัสผ่านได้','error');
+  const profile=(state.userAdmin.profiles||[]).find(item=>String(item.id||'')===String(profileId||''));
+  if(!profile)return toast('ไม่พบข้อมูลผู้ใช้งาน','error');
+  if(profile.role!=='User')return toast('กำหนดรหัสผ่านจากหน้านี้ได้เฉพาะผู้ใช้งาน Role User','warning');
+  if(!profile.auth_user_id)return toast('ผู้ใช้นี้ยังไม่เชื่อม Supabase Auth กรุณาสร้างหรือเชิญบัญชีใน Auth ก่อน','warning');
+  openModal(`<form id="adminSetPasswordForm" class="overflow-hidden" onsubmit="submitAdminSetPassword(event,'${esc(profile.id||'')}')">
+    <div class="flex items-start gap-3 border-b border-slate-200 p-5">
+      <div class="rounded-xl bg-violet-50 p-2.5 text-violet-700"><i data-lucide="key-round" class="h-6 w-6"></i></div>
+      <div class="min-w-0 flex-1"><h3 class="text-xl font-extrabold text-slate-900">กำหนดรหัสผ่านใหม่</h3><p class="mt-1 text-sm text-slate-500">HR Admin กำหนดรหัสผ่านให้ผู้ใช้งานโดยตรง โดยไม่ส่งอีเมล</p></div>
+      <button type="button" onclick="closeModal()" class="rounded-lg p-2 text-slate-500 hover:bg-slate-100"><i data-lucide="x" class="h-5 w-5"></i></button>
+    </div>
+    <div class="space-y-4 p-5">
+      <div class="rounded-xl border border-blue-100 bg-blue-50 p-4">
+        <div class="text-xs font-bold text-blue-600">ผู้ใช้งาน</div>
+        <div class="mt-1 font-extrabold text-blue-950">${esc(profile.display_name||'ไม่ระบุชื่อ')}</div>
+        <div class="text-sm text-blue-800">${esc(profile.email||'–')}</div>
+      </div>
+      <div class="grid gap-4 sm:grid-cols-2">
+        <label class="text-sm font-bold text-slate-700">รหัสผ่านใหม่ <span class="text-red-500">*</span>
+          <div class="relative mt-1"><input id="adminNewPassword" type="password" required minlength="8" autocomplete="new-password" class="h-11 w-full rounded-xl border border-slate-300 px-3 pr-11 outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-100" /><button type="button" onclick="togglePasswordField('adminNewPassword',this)" class="absolute right-2 top-1.5 grid h-8 w-8 place-items-center rounded-lg text-slate-400 hover:bg-slate-100"><i data-lucide="eye" class="h-4 w-4"></i></button></div>
+        </label>
+        <label class="text-sm font-bold text-slate-700">ยืนยันรหัสผ่าน <span class="text-red-500">*</span>
+          <div class="relative mt-1"><input id="adminConfirmPassword" type="password" required minlength="8" autocomplete="new-password" class="h-11 w-full rounded-xl border border-slate-300 px-3 pr-11 outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-100" /><button type="button" onclick="togglePasswordField('adminConfirmPassword',this)" class="absolute right-2 top-1.5 grid h-8 w-8 place-items-center rounded-lg text-slate-400 hover:bg-slate-100"><i data-lucide="eye" class="h-4 w-4"></i></button></div>
+        </label>
+      </div>
+      <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div class="text-xs leading-5 text-slate-500">อย่างน้อย 8 ตัวอักษร และควรมีตัวพิมพ์ใหญ่ ตัวพิมพ์เล็ก ตัวเลข และอักขระพิเศษ</div>
+        <button type="button" onclick="generateAdminTemporaryPassword()" class="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-xl border border-violet-200 bg-violet-50 px-3 text-xs font-extrabold text-violet-700 hover:bg-violet-100"><i data-lucide="wand-sparkles" class="h-4 w-4"></i>สร้างรหัสผ่าน</button>
+      </div>
+      <div id="adminPasswordError" class="hidden rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700"></div>
+      <div class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-6 text-amber-900"><b>ข้อควรระวัง:</b> รหัสผ่านจะมีผลทันที กรุณาแจ้งผู้ใช้ผ่านช่องทางที่ปลอดภัย และไม่ควรส่งรหัสผ่านในกลุ่มแชตหรืออีเมลที่มีผู้รับหลายคน</div>
+    </div>
+    <div class="flex flex-col-reverse gap-2 border-t border-slate-200 bg-slate-50 p-4 sm:flex-row sm:justify-end">
+      <button type="button" onclick="closeModal()" class="h-11 rounded-xl border border-slate-300 bg-white px-5 font-bold text-slate-700 hover:bg-slate-50">ยกเลิก</button>
+      <button type="submit" class="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-violet-600 px-5 font-extrabold text-white hover:bg-violet-700 focus:ring-4 focus:ring-violet-200"><i data-lucide="shield-check" class="h-4 w-4"></i>บันทึกรหัสผ่านใหม่</button>
+    </div>
+  </form>`);
+  setTimeout(()=>$('adminNewPassword')?.focus(),0);
+}
+
+async function edgeFunctionErrorMessage(error){
+  try{
+    const response=error?.context;
+    if(response&&typeof response.clone==='function'){
+      const payload=await response.clone().json();
+      return payload?.message||payload?.error||payload?.details||errorText(error);
+    }
+  }catch(_error){}
+  return errorText(error);
+}
+
+async function submitAdminSetPassword(event,profileId=''){
+  event.preventDefault();
+  if(!canManageUsers())return toast('เฉพาะ HR Admin เท่านั้นที่กำหนดรหัสผ่านได้','error');
+  const password=String($('adminNewPassword')?.value||'');
+  const confirmPassword=String($('adminConfirmPassword')?.value||'');
+  const errorBox=$('adminPasswordError');
+  const showError=message=>{if(errorBox){errorBox.textContent=message;errorBox.classList.remove('hidden');}};
+  if(password.length<8)return showError('รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร');
+  if(password!==confirmPassword)return showError('รหัสผ่านทั้งสองช่องไม่ตรงกัน');
+  errorBox?.classList.add('hidden');
+  const profile=(state.userAdmin.profiles||[]).find(item=>String(item.id||'')===String(profileId||''));
+  if(!profile)return showError('ไม่พบข้อมูลผู้ใช้งาน');
+  const confirmed=await showConfirmModal({
+    title:'ยืนยันการกำหนดรหัสผ่าน',
+    message:`รหัสผ่านของ ${profile.display_name||profile.email} จะถูกเปลี่ยนและมีผลทันที`,
+    confirmText:'ยืนยันเปลี่ยนรหัสผ่าน',
+    tone:'orange',
+    icon:'key-round'
+  });
+  if(!confirmed)return;
+  showLoading(true,'กำลังกำหนดรหัสผ่านใหม่...');
+  try{
+    const {data,error}=await dbClient.functions.invoke('admin-set-user-password',{
+      body:{profile_id:profileId,password}
+    });
+    if(error)throw error;
+    if(!data?.success)throw new Error(data?.message||'Edge Function ไม่ได้ยืนยันผลสำเร็จ');
+    if($('adminNewPassword'))$('adminNewPassword').value='';
+    if($('adminConfirmPassword'))$('adminConfirmPassword').value='';
+    closeModal();
+    await showNoticeModal({type:'success',title:'กำหนดรหัสผ่านสำเร็จ',message:`กำหนดรหัสผ่านใหม่ให้ ${profile.display_name||profile.email} แล้ว รหัสผ่านมีผลทันที`});
+  }catch(error){
+    showError(await edgeFunctionErrorMessage(error));
+  }finally{showLoading(false);}
+}
+
 async function loadUserManagement(force=false){
   if(!canManageUsers())return toast('เฉพาะ HR Admin เท่านั้นที่จัดการผู้ใช้งานได้','error');
   if(state.userAdmin.loaded&&!force){renderUserManagement();return;}
@@ -5880,7 +5985,7 @@ function renderUserManagement(){
       <td class="text-center">${isUser?`<button type="button" onclick="openUserScopeModal('${esc(email)}')" class="rounded-full bg-blue-50 px-3 py-1 text-xs font-extrabold text-blue-700 hover:bg-blue-100">${fmt(scopeCounts.get(email)||0)} ULHANA</button>`:'<span class="text-xs font-semibold text-slate-400">ทุก ULHANA</span>'}</td>
       <td class="text-center">${userProfileActive(profile)?'<span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700">ใช้งาน</span>':'<span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-500">ปิดใช้งาน</span>'}</td>
       <td class="text-center text-xs text-slate-500">${formatAdminDate(profile.updated_at||profile.created_at)}</td>
-      <td class="text-center"><div class="inline-flex gap-1"><button type="button" onclick="openUserProfileModal('${esc(profile.id||'')}')" class="grid h-9 w-9 place-items-center rounded-lg border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100" title="แก้ไขผู้ใช้งาน"><i data-lucide="pencil" class="h-4 w-4"></i></button>${profile.auth_user_id?`<button type="button" onclick="sendAdminPasswordReset('${esc(email)}')" class="grid h-9 w-9 place-items-center rounded-lg border border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100" title="ส่งลิงก์ Reset Password"><i data-lucide="key-round" class="h-4 w-4"></i></button>`:`<button type="button" disabled class="grid h-9 w-9 cursor-not-allowed place-items-center rounded-lg border border-slate-200 bg-slate-100 text-slate-400" title="ยังไม่เชื่อม Supabase Auth"><i data-lucide="key-round" class="h-4 w-4"></i></button>`}${isUser?`<button type="button" onclick="openUserScopeModal('${esc(email)}')" class="grid h-9 w-9 place-items-center rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100" title="กำหนด User Scope"><i data-lucide="network" class="h-4 w-4"></i></button>`:''}</div></td>
+      <td class="text-center"><div class="inline-flex gap-1"><button type="button" onclick="openUserProfileModal('${esc(profile.id||'')}')" class="grid h-9 w-9 place-items-center rounded-lg border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100" title="แก้ไขผู้ใช้งาน"><i data-lucide="pencil" class="h-4 w-4"></i></button>${profile.auth_user_id&&isUser?`<button type="button" onclick="openAdminSetPasswordModal('${esc(profile.id||'')}')" class="grid h-9 w-9 place-items-center rounded-lg border border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100" title="HR Admin กำหนดรหัสผ่านใหม่"><i data-lucide="key-round" class="h-4 w-4"></i></button>`:profile.auth_user_id?`<button type="button" disabled class="grid h-9 w-9 cursor-not-allowed place-items-center rounded-lg border border-slate-200 bg-slate-100 text-slate-400" title="กำหนดรหัสผ่านได้เฉพาะ Role User"><i data-lucide="key-round" class="h-4 w-4"></i></button>`:`<button type="button" disabled class="grid h-9 w-9 cursor-not-allowed place-items-center rounded-lg border border-slate-200 bg-slate-100 text-slate-400" title="ยังไม่เชื่อม Supabase Auth"><i data-lucide="key-round" class="h-4 w-4"></i></button>`}${isUser?`<button type="button" onclick="openUserScopeModal('${esc(email)}')" class="grid h-9 w-9 place-items-center rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100" title="กำหนด User Scope"><i data-lucide="network" class="h-4 w-4"></i></button>`:''}</div></td>
     </tr>`;
   }).join(''):`<tr><td colspan="8" class="p-10 text-center text-slate-400"><i data-lucide="user-search" class="mx-auto mb-2 h-8 w-8"></i>ไม่พบผู้ใช้งานตามตัวกรอง</td></tr>`;
 
@@ -5932,7 +6037,7 @@ function openUserProfileModal(profileId=''){
       <label class="text-sm font-bold text-slate-700">สถานะ<div class="mt-1 flex h-11 items-center gap-3 rounded-xl border border-slate-300 px-3 ${isSelf?'bg-slate-100':''}"><input id="manageUserActive" type="checkbox" ${userProfileActive(profile)||!profile?'checked':''} ${isSelf?'disabled':''} class="h-5 w-5 rounded border-slate-300 text-blue-600" /><span>อนุญาตให้เข้าใช้งาน Application</span></div></label>
       <div class="sm:col-span-2 rounded-xl border ${profile?.auth_user_id?'border-emerald-200 bg-emerald-50 text-emerald-800':'border-amber-200 bg-amber-50 text-amber-900'} p-3 text-sm"><div class="flex items-start gap-2"><i data-lucide="${profile?.auth_user_id?'shield-check':'mail-warning'}" class="mt-0.5 h-5 w-5 shrink-0"></i><div><b>${profile?.auth_user_id?'เชื่อมต่อ Supabase Auth แล้ว':'ยังไม่เชื่อม Supabase Auth'}</b><div class="mt-1 text-xs leading-6">${profile?.auth_user_id?'ผู้ใช้สามารถ Login ด้วยบัญชี Auth นี้ได้ตาม Role และ Scope ที่กำหนด':'หลังบันทึก Profile ให้เชิญอีเมลนี้ที่ Supabase Auth > Users เมื่อ Login ครั้งแรก ระบบจะผูก Auth User กับ Profile อัตโนมัติ'}</div></div></div></div>
     </div>
-    <div class="flex flex-col-reverse gap-2 border-t border-slate-200 bg-slate-50 p-4 sm:flex-row sm:justify-end">${profile?.auth_user_id?`<button type="button" onclick="closeModal();sendAdminPasswordReset('${esc(normalizedEmail(profile.email))}')" class="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-violet-200 bg-violet-50 px-5 font-bold text-violet-700 hover:bg-violet-100"><i data-lucide="key-round" class="h-4 w-4"></i>ส่ง Reset Password</button>`:''}<button type="button" onclick="closeModal()" class="h-11 rounded-xl border border-slate-300 bg-white px-5 font-bold text-slate-700">ยกเลิก</button><button type="submit" class="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 font-extrabold text-white hover:bg-blue-700"><i data-lucide="save" class="h-4 w-4"></i>บันทึกผู้ใช้งาน</button></div>
+    <div class="flex flex-col-reverse gap-2 border-t border-slate-200 bg-slate-50 p-4 sm:flex-row sm:justify-end">${profile?.auth_user_id&&profile?.role==='User'?`<button type="button" onclick="closeModal();openAdminSetPasswordModal('${esc(profile.id||'')}')" class="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-violet-200 bg-violet-50 px-5 font-bold text-violet-700 hover:bg-violet-100"><i data-lucide="key-round" class="h-4 w-4"></i>กำหนดรหัสผ่านใหม่</button>`:''}<button type="button" onclick="closeModal()" class="h-11 rounded-xl border border-slate-300 bg-white px-5 font-bold text-slate-700">ยกเลิก</button><button type="submit" class="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 font-extrabold text-white hover:bg-blue-700"><i data-lucide="save" class="h-4 w-4"></i>บันทึกผู้ใช้งาน</button></div>
   </form>`);
 }
 
