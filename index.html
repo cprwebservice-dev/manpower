@@ -545,6 +545,286 @@
     html[data-theme="dark"] input[type="datetime-local"],
     html[data-theme="dark"] input[type="time"] { color-scheme:dark; }
 
+
+    /* ============================================================
+       DARK THEME · HIGH CONTRAST
+       เพิ่มความต่างระหว่างพื้น การ์ด ข้อความ และสถานะ
+       โดยไม่กระทบ Light Mode
+    ============================================================ */
+    html[data-theme="dark"] body {
+      background:
+        radial-gradient(circle at 10% 0%, rgba(37,99,235,.20), transparent 34%),
+        radial-gradient(circle at 92% 8%, rgba(14,116,144,.13), transparent 30%),
+        linear-gradient(180deg,#091426 0%,#0b1729 48%,#0a1526 100%);
+      color:#f4f7fb;
+    }
+
+    html[data-theme="dark"] .card,
+    html[data-theme="dark"] .modal-panel,
+    html[data-theme="dark"] .glass {
+      background:rgba(22,36,58,.98) !important;
+      border-color:#405572 !important;
+      color:#f4f7fb !important;
+    }
+
+    html[data-theme="dark"] [class~="bg-white"],
+    html[data-theme="dark"] [class~="bg-white/75"],
+    html[data-theme="dark"] [class~="bg-white/80"],
+    html[data-theme="dark"] [class~="bg-white/88"],
+    html[data-theme="dark"] [class~="bg-white/90"],
+    html[data-theme="dark"] [class~="bg-white/92"],
+    html[data-theme="dark"] [class~="bg-white/95"] {
+      background-color:#16243a !important;
+    }
+    html[data-theme="dark"] [class~="bg-slate-50"],
+    html[data-theme="dark"] [class~="bg-slate-50/60"],
+    html[data-theme="dark"] [class~="bg-slate-50/70"],
+    html[data-theme="dark"] [class~="bg-slate-50/80"] {
+      background-color:#1a2a43 !important;
+    }
+    html[data-theme="dark"] [class~="bg-slate-100"],
+    html[data-theme="dark"] [class~="bg-slate-100/80"],
+    html[data-theme="dark"] [class~="bg-slate-200/80"] {
+      background-color:#20314a !important;
+    }
+
+    /* แก้ Gradient ที่เดิมยังคงเป็นสีขาวใน Dark Mode */
+    html[data-theme="dark"] [class~="from-white"] {
+      --tw-gradient-from:#223957 var(--tw-gradient-from-position) !important;
+      --tw-gradient-to:rgb(34 57 87 / 0) var(--tw-gradient-to-position) !important;
+    }
+    html[data-theme="dark"] [class~="to-white"],
+    html[data-theme="dark"] [class~="to-white/80"] {
+      --tw-gradient-to:#17263c var(--tw-gradient-to-position) !important;
+    }
+    html[data-theme="dark"] [class~="via-blue-50/70"] {
+      --tw-gradient-via:#1d3554 var(--tw-gradient-via-position) !important;
+    }
+    html[data-theme="dark"] [class~="to-blue-50/50"] {
+      --tw-gradient-to:#193455 var(--tw-gradient-to-position) !important;
+    }
+    html[data-theme="dark"] [class~="to-cyan-50/50"],
+    html[data-theme="dark"] [class~="to-cyan-50"] {
+      --tw-gradient-to:#15394b var(--tw-gradient-to-position) !important;
+    }
+    html[data-theme="dark"] [class~="hover:from-blue-50"]:hover {
+      --tw-gradient-from:#24466f var(--tw-gradient-from-position) !important;
+    }
+    html[data-theme="dark"] [class~="hover:to-cyan-50"]:hover,
+    html[data-theme="dark"] [class~="hover:to-cyan-100/60"]:hover {
+      --tw-gradient-to:#1b4a60 var(--tw-gradient-to-position) !important;
+    }
+
+    /* ข้อความหลักและข้อความรองอ่านง่ายขึ้น */
+    html[data-theme="dark"] .text-slate-950,
+    html[data-theme="dark"] .text-slate-900,
+    html[data-theme="dark"] .text-slate-800 { color:#f8fafc !important; }
+    html[data-theme="dark"] .text-slate-700 { color:#e8edf5 !important; }
+    html[data-theme="dark"] .text-slate-600 { color:#d6dfeb !important; }
+    html[data-theme="dark"] .text-slate-500 { color:#c1ccda !important; }
+    html[data-theme="dark"] .text-slate-400 { color:#aebdd0 !important; }
+    html[data-theme="dark"] .text-slate-300 { color:#d1dae7 !important; }
+    html[data-theme="dark"] .text-cyan-900,
+    html[data-theme="dark"] .text-cyan-800,
+    html[data-theme="dark"] .text-cyan-700 { color:#74e6ff !important; }
+    html[data-theme="dark"] .text-indigo-900,
+    html[data-theme="dark"] .text-indigo-800,
+    html[data-theme="dark"] .text-indigo-700 { color:#b8c4ff !important; }
+    html[data-theme="dark"] .text-purple-900,
+    html[data-theme="dark"] .text-purple-800,
+    html[data-theme="dark"] .text-purple-700 { color:#ddb8ff !important; }
+
+    html[data-theme="dark"] input,
+    html[data-theme="dark"] select,
+    html[data-theme="dark"] textarea {
+      background-color:#13233a !important;
+      border-color:#4b6382 !important;
+      color:#f8fafc !important;
+    }
+    html[data-theme="dark"] input::placeholder,
+    html[data-theme="dark"] textarea::placeholder {
+      color:#aebdd0 !important;
+      opacity:1;
+    }
+    html[data-theme="dark"] input:focus,
+    html[data-theme="dark"] select:focus,
+    html[data-theme="dark"] textarea:focus {
+      border-color:#60a5fa !important;
+      box-shadow:0 0 0 4px rgba(59,130,246,.20) !important;
+    }
+
+    /* รายการที่ต้องดำเนินการ */
+    html[data-theme="dark"] #actionKpis > div {
+      background:#111f33 !important;
+      border-color:#4a607d !important;
+      box-shadow:0 18px 42px rgba(0,0,0,.25) !important;
+    }
+    html[data-theme="dark"] #actionKpis .action-filter-card:not([data-filter-key="total"]) {
+      background:#182941 !important;
+      border-color:#415978 !important;
+    }
+    html[data-theme="dark"] #actionKpis .action-filter-card:not([data-filter-key="total"]):hover {
+      background:#203553 !important;
+      border-color:#6ba7f5 !important;
+    }
+    html[data-theme="dark"] #actionKpis .action-filter-card.active:not([data-filter-key="total"]) {
+      background:#213a5e !important;
+      border-color:#7db5ff !important;
+      outline-color:rgba(96,165,250,.30) !important;
+    }
+    html[data-theme="dark"] #actionKpis [class~="bg-slate-100"] {
+      background:#0e1a2c !important;
+    }
+    html[data-theme="dark"] #actionKpis [class~="bg-indigo-50"] { background-color:rgba(99,102,241,.24) !important; }
+    html[data-theme="dark"] #actionKpis [class~="bg-purple-50"] { background-color:rgba(168,85,247,.24) !important; }
+    html[data-theme="dark"] #actionKpis [class~="bg-pink-50"] { background-color:rgba(236,72,153,.22) !important; }
+    html[data-theme="dark"] #actionKpis [class~="bg-teal-50"] { background-color:rgba(20,184,166,.22) !important; }
+
+    html[data-theme="dark"] #tab-actions .card,
+    html[data-theme="dark"] #tab-actions [class~="rounded-2xl"] {
+      border-color:#405572;
+    }
+    html[data-theme="dark"] #actionResultCount {
+      background:#172943 !important;
+      border-color:#466181 !important;
+      color:#e5edf7 !important;
+    }
+
+    /* หัวสำนักและหัวด้าน: ใช้พื้นเข้มแทน Gradient สีอ่อน */
+    html[data-theme="dark"] #actionTree > div {
+      background:#132238 !important;
+      border-color:#4b607a !important;
+      box-shadow:0 12px 30px rgba(0,0,0,.22) !important;
+    }
+    html[data-theme="dark"] #actionTree .office-toggle {
+      background:linear-gradient(90deg,#29466d 0%,#223a5a 52%,#1d4358 100%) !important;
+      border-bottom-color:#526a87 !important;
+      color:#f8fafc !important;
+    }
+    html[data-theme="dark"] #actionTree .office-toggle:hover {
+      background:linear-gradient(90deg,#31527f 0%,#29486f 52%,#245268 100%) !important;
+    }
+    html[data-theme="dark"] #actionTree .office-toggle .text-slate-900,
+    html[data-theme="dark"] #actionTree .office-toggle .font-extrabold {
+      color:#ffffff !important;
+      text-shadow:0 1px 1px rgba(0,0,0,.24);
+    }
+    html[data-theme="dark"] #actionTree .office-toggle .text-slate-500 {
+      color:#d2deeb !important;
+    }
+    html[data-theme="dark"] #actionTree .office-toggle .tree-caret {
+      color:#dce9f8 !important;
+    }
+    html[data-theme="dark"] #actionTree .group-toggle {
+      background:linear-gradient(90deg,#1d304a 0%,#17263b 100%) !important;
+      color:#f3f6fa !important;
+      border-color:#354b67 !important;
+    }
+    html[data-theme="dark"] #actionTree .group-toggle:hover {
+      background:linear-gradient(90deg,#254568 0%,#1d3853 100%) !important;
+    }
+    html[data-theme="dark"] #actionTree .group-toggle > span:first-of-type {
+      color:#f8fafc !important;
+    }
+    html[data-theme="dark"] #actionTree .group-toggle .bg-white {
+      background:#263a55 !important;
+      color:#e2eaf4 !important;
+    }
+    html[data-theme="dark"] #actionTree .divide-y > :not([hidden]) ~ :not([hidden]) {
+      border-color:#314760 !important;
+    }
+    html[data-theme="dark"] #actionTree .border-l-4 {
+      background:#132238;
+    }
+    html[data-theme="dark"] #actionTree .border-l-4:hover {
+      background:#1a2f4a !important;
+    }
+    html[data-theme="dark"] #actionTree b,
+    html[data-theme="dark"] #actionTree .font-bold,
+    html[data-theme="dark"] #actionTree .font-semibold {
+      color:#f5f7fb;
+    }
+    html[data-theme="dark"] #actionTree .text-slate-500 {
+      color:#b9c7d8 !important;
+    }
+
+    /* Workflow step เพิ่ม Contrast */
+    html[data-theme="dark"] .step {
+      border-color:#48617f;
+      background:#1a2b43;
+      color:#dce5f0;
+    }
+    html[data-theme="dark"] .step > span:first-child {
+      background:#0b1729 !important;
+      border:1px solid #4a6381;
+      color:#f8fafc !important;
+    }
+    html[data-theme="dark"] .step.active {
+      border-color:#60a5fa;
+      background:#1e3f6a;
+      color:#dbeafe;
+      box-shadow:inset 0 0 0 1px rgba(96,165,250,.20);
+    }
+    html[data-theme="dark"] .step.done {
+      border-color:#34d399;
+      background:#174033;
+      color:#bbf7d0;
+    }
+    html[data-theme="dark"] .step.returned {
+      border-color:#fb923c;
+      background:#4a2b18;
+      color:#fed7aa;
+    }
+
+    html[data-theme="dark"] .open-plan-btn {
+      background:linear-gradient(90deg,#2563eb,#0891b2) !important;
+      border-color:#7dd3fc !important;
+      color:#ffffff !important;
+      box-shadow:0 6px 16px rgba(37,99,235,.22) !important;
+    }
+    html[data-theme="dark"] .open-plan-btn:hover {
+      background:linear-gradient(90deg,#3b82f6,#06b6d4) !important;
+      color:#ffffff !important;
+    }
+
+    /* ตารางและ Modal */
+    html[data-theme="dark"] .matrix tbody td,
+    html[data-theme="dark"] .matrix tbody td:first-child,
+    html[data-theme="dark"] .user-admin-table td {
+      background:#16243a;
+      color:#eef3f9;
+    }
+    html[data-theme="dark"] .matrix th,
+    html[data-theme="dark"] .matrix td,
+    html[data-theme="dark"] .user-admin-table th,
+    html[data-theme="dark"] .user-admin-table td {
+      border-color:#405572 !important;
+    }
+    html[data-theme="dark"] .user-admin-table th {
+      background:#20314a;
+      color:#f0f4f9;
+    }
+    html[data-theme="dark"] .user-admin-table tbody tr:hover td {
+      background:#203553 !important;
+    }
+    html[data-theme="dark"] .modal-panel [class~="border-t"],
+    html[data-theme="dark"] .modal-panel [class~="border-b"] {
+      border-color:#405572 !important;
+    }
+
+    /* ปุ่มรองและปุ่มเส้นขอบ */
+    html[data-theme="dark"] button[class*="border-slate"],
+    html[data-theme="dark"] button[class*="border-blue-200"] {
+      border-color:#547091 !important;
+    }
+    html[data-theme="dark"] button[class*="bg-white"] {
+      color:#edf3fa !important;
+      background:#1c2f49 !important;
+    }
+    html[data-theme="dark"] button[class*="bg-white"]:hover {
+      background:#27415f !important;
+    }
+
   </style>
 </head>
 <body class="min-h-screen">
@@ -1099,8 +1379,8 @@ function applyTheme(theme,{persist=true,redrawChart=true}={}){
     try{localStorage.setItem(THEME_STORAGE_KEY,next);}catch(_error){}
   }
   if(window.Chart){
-    Chart.defaults.color=next==='dark'?'#b9c8db':'#64748b';
-    Chart.defaults.borderColor=next==='dark'?'rgba(148,163,184,.18)':'rgba(148,163,184,.22)';
+    Chart.defaults.color=next==='dark'?'#dce6f3':'#64748b';
+    Chart.defaults.borderColor=next==='dark'?'rgba(176,196,222,.24)':'rgba(148,163,184,.22)';
   }
   syncThemeToggleUI();
   if(redrawChart&&state.chart&&$('planChart'))window.setTimeout(()=>renderChart(),0);
@@ -3149,9 +3429,9 @@ function clearEmployeeListFilters(){
 
 function renderChart(){
   const dark=isDarkTheme();
-  const chartText=dark?'#c7d4e5':'#64748b';
-  const chartValueText=dark?'#e8eef8':'#334155';
-  const chartGrid=dark?'rgba(148,163,184,.16)':'rgba(148,163,184,.22)';
+  const chartText=dark?'#dce6f3':'#64748b';
+  const chartValueText=dark?'#f8fafc':'#334155';
+  const chartGrid=dark?'rgba(176,196,222,.24)':'rgba(148,163,184,.22)';
   const bg26=byLevel('bg26');
   const bg27=byLevel('bg27');
   const labels=LEVELS;
