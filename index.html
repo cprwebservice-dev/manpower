@@ -755,7 +755,7 @@ const dbClient = window.supabase.createClient(SB_URL, SB_PUBLISHABLE_KEY);</pre>
   <div id="dialogRoot"></div>
 
 <script>
-/* Version: Super Admin RBAC · 2026-07-30 */
+/* Version: Super Admin RBAC · Password Fix · 2026-07-31 */
 /* ============================================================
    CONFIG: ใส่ค่า Supabase Project ของคุณตรงนี้
    ห้ามเปลี่ยนชื่อตัวแปร dbClient เป็น supabase
@@ -5944,7 +5944,7 @@ async function submitAdminSetPassword(event,profileId=''){
   if(!confirmed)return;
   showLoading(true,creating?'กำลังสร้างบัญชีเข้าใช้งาน...':'กำลังกำหนดรหัสผ่านใหม่...');
   try{
-    const {data,error}=await dbClient.functions.invoke('admin-set-user-password',{
+    const {data,error}=await dbClient.functions.invoke('super-admin-set-user-password',{
       body:{profile_id:profileId,password}
     });
     if(error)throw error;
