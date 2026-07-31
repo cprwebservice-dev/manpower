@@ -3550,13 +3550,21 @@ function renderChart(){
       {label:'ผลต่าง',value:`${totalDiff>0?'+':''}${fmt(totalDiff)}`,tone:totalDiff>=0?'emerald':'rose',sub:'BG27 - BG26'},
       {label:'% เปลี่ยนแปลง',value:`${pct>0?'+':''}${pct.toFixed(1)}%`,tone:pct>=0?'cyan':'rose',sub:'เทียบ BG26'}
     ].map(item=>{
-      const toneMap={
-        blue:'border-blue-100 bg-blue-50 text-blue-800',
-        orange:'border-orange-100 bg-orange-50 text-orange-800',
-        emerald:'border-emerald-100 bg-emerald-50 text-emerald-800',
-        cyan:'border-cyan-100 bg-cyan-50 text-cyan-800',
-        rose:'border-rose-100 bg-rose-50 text-rose-800'
-      };
+      const toneMap=dark
+        ? {
+            blue:'border-[#335d92] bg-[#132846] text-[#b9d8ff]',
+            orange:'border-[#2f6e7c] bg-[#112d38] text-[#9fe2ea]',
+            emerald:'border-[#2b6f62] bg-[#102d2b] text-[#8ce0ce]',
+            cyan:'border-[#345f86] bg-[#12283a] text-[#a8d9ff]',
+            rose:'border-[#7b4453] bg-[#341b28] text-[#f3b4c4]'
+          }
+        : {
+            blue:'border-blue-100 bg-blue-50 text-blue-800',
+            orange:'border-orange-100 bg-orange-50 text-orange-800',
+            emerald:'border-emerald-100 bg-emerald-50 text-emerald-800',
+            cyan:'border-cyan-100 bg-cyan-50 text-cyan-800',
+            rose:'border-rose-100 bg-rose-50 text-rose-800'
+          };
       return `<div class="min-w-[96px] rounded-2xl border px-3 py-2 text-center ${toneMap[item.tone]}">
         <div class="text-[10px] font-extrabold uppercase tracking-wide opacity-70">${item.label}</div>
         <div class="mt-0.5 text-xl font-extrabold leading-none">${typeof item.value==='number'?fmt(item.value):esc(item.value)}</div>
@@ -3569,11 +3577,11 @@ function renderChart(){
 
   const ctx=$('planChart').getContext('2d');
   const blueGradient=ctx.createLinearGradient(0,0,0,280);
-  blueGradient.addColorStop(0,dark?'#60a5fa':'#60a5fa');
-  blueGradient.addColorStop(1,dark?'#234a78':'#bfdbfe');
+  blueGradient.addColorStop(0,dark?'#6ab7ff':'#60a5fa');
+  blueGradient.addColorStop(1,dark?'#2d5b8a':'#bfdbfe');
   const orangeGradient=ctx.createLinearGradient(0,0,0,280);
-  orangeGradient.addColorStop(0,dark?'#fb923c':'#f97316');
-  orangeGradient.addColorStop(1,dark?'#7a4b17':'#fbbf24');
+  orangeGradient.addColorStop(0,dark?'#72d1d5':'#f97316');
+  orangeGradient.addColorStop(1,dark?'#2c6972':'#fbbf24');
 
   const valueLabelPlugin={
     id:'valueLabelPlugin',
@@ -3596,7 +3604,7 @@ function renderChart(){
           const label=isDiff?`${value>0?'+':''}${fmt(value)}`:fmt(value);
           const y=isDiff?element.y-14:element.y-12;
 
-          ctx.fillStyle=isDiff?(value>=0?(dark?'#6ee7b7':'#047857'):(dark?'#fda4af':'#be123c')):chartValueText;
+          ctx.fillStyle=isDiff?(value>=0?(dark?'#7ce7bf':'#047857'):(dark?'#f6a6b8':'#be123c')):chartValueText;
           ctx.fillText(label,element.x,y);
         });
       });
@@ -3614,7 +3622,7 @@ function renderChart(){
           label:'BG26',
           data:data26,
           backgroundColor:blueGradient,
-          borderColor:'#3b82f6',
+          borderColor:dark?'#80c2ff':'#3b82f6',
           borderWidth:1,
           borderRadius:10,
           borderSkipped:false,
@@ -3625,7 +3633,7 @@ function renderChart(){
           label:'BG27',
           data:data27,
           backgroundColor:orangeGradient,
-          borderColor:'#f97316',
+          borderColor:dark?'#86dde0':'#f97316',
           borderWidth:1,
           borderRadius:10,
           borderSkipped:false,
@@ -3636,10 +3644,10 @@ function renderChart(){
           type:'line',
           label:'ผลต่าง',
           data:diffData,
-          borderColor:'#10b981',
-          backgroundColor:'rgba(16,185,129,.12)',
-          pointBackgroundColor:diffData.map(value=>value>=0?'#10b981':'#ef4444'),
-          pointBorderColor:dark?'#111c2e':'#ffffff',
+          borderColor:dark?'#52d6a1':'#10b981',
+          backgroundColor:dark?'rgba(82,214,161,.10)':'rgba(16,185,129,.12)',
+          pointBackgroundColor:diffData.map(value=>value>=0?(dark?'#52d6a1':'#10b981'):(dark?'#ef889f':'#ef4444')),
+          pointBorderColor:dark?'#152338':'#ffffff',
           pointBorderWidth:2,
           pointRadius:5,
           pointHoverRadius:7,
@@ -3668,10 +3676,10 @@ function renderChart(){
           }
         },
         tooltip:{
-          backgroundColor:dark?'rgba(2,6,23,.96)':'rgba(15,23,42,.92)',
+          backgroundColor:dark?'rgba(9,18,33,.96)':'rgba(15,23,42,.92)',
           titleColor:'#f8fafc',
           bodyColor:'#e2e8f0',
-          borderColor:dark?'#334155':'transparent',
+          borderColor:dark?'#35506f':'transparent',
           borderWidth:dark?1:0,
           titleFont:{weight:'800'},
           bodyFont:{weight:'700'},
