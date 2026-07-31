@@ -311,6 +311,240 @@
     .scope-picker-row { transition:background .14s ease,border-color .14s ease,transform .14s ease; }
     .scope-picker-row:hover { background:#f8fbff; border-color:#93c5fd; transform:translateY(-1px); }
     .scope-picker-row.selected { background:#eff6ff; border-color:#60a5fa; box-shadow:0 8px 20px rgba(37,99,235,.08); }
+
+
+    /* ============================================================
+       LIGHT / DARK THEME
+       ใช้ data-theme บน <html> และเก็บค่าที่เลือกไว้ใน localStorage
+    ============================================================ */
+    html { color-scheme: light; }
+    html[data-theme="dark"] { color-scheme: dark; }
+    body, .card, .glass, .modal-panel, input, select, textarea, button,
+    .matrix th, .matrix td, .user-admin-table th, .user-admin-table td {
+      transition: background-color .2s ease, border-color .2s ease, color .2s ease, box-shadow .2s ease;
+    }
+    .theme-toggle-btn {
+      position: relative;
+      isolation: isolate;
+    }
+    .theme-toggle-btn::after {
+      content: '';
+      position: absolute;
+      inset: 4px;
+      z-index: -1;
+      border-radius: .7rem;
+      background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.28), transparent 58%);
+      pointer-events: none;
+    }
+    #authThemeToggleBtn {
+      position: absolute;
+      right: 1rem;
+      top: 1rem;
+      z-index: 5;
+    }
+
+    html[data-theme="dark"] body {
+      background:
+        radial-gradient(circle at 10% 0%, rgba(37,99,235,.18), transparent 34%),
+        radial-gradient(circle at 90% 8%, rgba(16,185,129,.11), transparent 31%),
+        linear-gradient(180deg,#07111f 0%,#0a1424 48%,#091321 100%);
+      color: #e8eef8;
+    }
+    html[data-theme="dark"] #authScreen {
+      background:
+        radial-gradient(circle at top left, rgba(37,99,235,.24), transparent 34%),
+        linear-gradient(180deg,#07111f 0%,#0b1729 52%,#0a1424 100%) !important;
+    }
+    html[data-theme="dark"] #setupScreen { background:#07111f; }
+    html[data-theme="dark"] .glass {
+      background: rgba(15,29,48,.90);
+      box-shadow: 0 18px 60px rgba(0,0,0,.30);
+    }
+    html[data-theme="dark"] .card,
+    html[data-theme="dark"] .modal-panel {
+      background: rgba(17,28,46,.97) !important;
+      border-color: #2a3b52 !important;
+      color: #e8eef8 !important;
+      box-shadow: 0 18px 55px rgba(0,0,0,.24);
+    }
+    html[data-theme="dark"] .card:hover { box-shadow:0 22px 65px rgba(0,0,0,.31); }
+
+    /* Neutral Tailwind surfaces */
+    html[data-theme="dark"] [class~="bg-white"],
+    html[data-theme="dark"] [class~="bg-white/75"],
+    html[data-theme="dark"] [class~="bg-white/80"],
+    html[data-theme="dark"] [class~="bg-white/88"],
+    html[data-theme="dark"] [class~="bg-white/90"],
+    html[data-theme="dark"] [class~="bg-white/92"],
+    html[data-theme="dark"] [class~="bg-white/95"] {
+      background-color: #111c2e !important;
+    }
+    html[data-theme="dark"] [class~="bg-slate-50"],
+    html[data-theme="dark"] [class~="bg-slate-50/60"],
+    html[data-theme="dark"] [class~="bg-slate-50/70"],
+    html[data-theme="dark"] [class~="bg-slate-50/80"] {
+      background-color: #142033 !important;
+    }
+    html[data-theme="dark"] [class~="bg-slate-100"],
+    html[data-theme="dark"] [class~="bg-slate-100/80"],
+    html[data-theme="dark"] [class~="bg-slate-200/80"] {
+      background-color: #1a283d !important;
+    }
+    html[data-theme="dark"] [class~="bg-slate-700"] { background-color:#33445d !important; }
+    html[data-theme="dark"] [class~="bg-slate-800"] { background-color:#26364d !important; }
+    html[data-theme="dark"] [class~="bg-slate-950/55"],
+    html[data-theme="dark"] [class~="bg-slate-950/60"] { background-color:rgba(2,6,23,.76) !important; }
+
+    /* Neutral gradients */
+    html[data-theme="dark"] [class~="from-slate-50"],
+    html[data-theme="dark"] [class~="from-slate-50/90"],
+    html[data-theme="dark"] [class~="from-slate-50/95"] { --tw-gradient-from:#142033 var(--tw-gradient-from-position) !important; --tw-gradient-to:rgb(20 32 51 / 0) var(--tw-gradient-to-position) !important; }
+    html[data-theme="dark"] [class~="to-blue-50/50"] { --tw-gradient-to:rgba(24,48,82,.72) var(--tw-gradient-to-position) !important; }
+    html[data-theme="dark"] [class~="via-blue-50/70"] { --tw-gradient-via:#172a45 var(--tw-gradient-via-position) !important; }
+    html[data-theme="dark"] [class~="to-orange-50/60"] { --tw-gradient-to:rgba(73,43,23,.56) var(--tw-gradient-to-position) !important; }
+
+    /* Main text palette */
+    html[data-theme="dark"] .text-slate-950,
+    html[data-theme="dark"] .text-slate-900,
+    html[data-theme="dark"] .text-slate-800 { color:#eef4ff !important; }
+    html[data-theme="dark"] .text-slate-700 { color:#d7e1ef !important; }
+    html[data-theme="dark"] .text-slate-600 { color:#b9c8db !important; }
+    html[data-theme="dark"] .text-slate-500 { color:#9fb0c7 !important; }
+    html[data-theme="dark"] .text-slate-400 { color:#8295ae !important; }
+    html[data-theme="dark"] .text-slate-300 { color:#b6c5d8 !important; }
+
+    /* Borders and separators */
+    html[data-theme="dark"] .border-slate-100,
+    html[data-theme="dark"] .border-slate-200,
+    html[data-theme="dark"] .border-slate-200\/80,
+    html[data-theme="dark"] .border-slate-300,
+    html[data-theme="dark"] .divide-slate-200 > :not([hidden]) ~ :not([hidden]),
+    html[data-theme="dark"] .divide-y > :not([hidden]) ~ :not([hidden]) {
+      border-color:#2a3b52 !important;
+    }
+
+    /* Inputs and controls */
+    html[data-theme="dark"] input,
+    html[data-theme="dark"] select,
+    html[data-theme="dark"] textarea {
+      background-color:#17243a !important;
+      border-color:#3a4d67 !important;
+      color:#eef4ff !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.03), 0 8px 20px rgba(0,0,0,.10);
+    }
+    html[data-theme="dark"] input::placeholder,
+    html[data-theme="dark"] textarea::placeholder { color:#7f93ad !important; opacity:1; }
+    html[data-theme="dark"] input:disabled,
+    html[data-theme="dark"] select:disabled,
+    html[data-theme="dark"] textarea:disabled { background:#111c2e !important; color:#71849d !important; }
+    html[data-theme="dark"] option { background:#17243a; color:#eef4ff; }
+    html[data-theme="dark"] .modern-input { box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 8px 20px rgba(0,0,0,.12); }
+    html[data-theme="dark"] .searchable-select-panel { background:#111c2e !important; border-color:#334761 !important; box-shadow:0 18px 42px rgba(0,0,0,.36) !important; }
+    html[data-theme="dark"] .searchable-select-clear:hover { background:#22324a; color:#fca5a5; }
+
+    /* Soft semantic surfaces keep their meaning but use dark tints */
+    html[data-theme="dark"] .bg-blue-50 { background-color:rgba(37,99,235,.18) !important; }
+    html[data-theme="dark"] .bg-blue-100 { background-color:rgba(37,99,235,.28) !important; }
+    html[data-theme="dark"] .bg-cyan-50 { background-color:rgba(8,145,178,.18) !important; }
+    html[data-theme="dark"] .bg-emerald-50,
+    html[data-theme="dark"] .bg-emerald-50\/60 { background-color:rgba(5,150,105,.17) !important; }
+    html[data-theme="dark"] .bg-emerald-100 { background-color:rgba(5,150,105,.26) !important; }
+    html[data-theme="dark"] .bg-amber-50,
+    html[data-theme="dark"] .bg-amber-50\/70 { background-color:rgba(217,119,6,.18) !important; }
+    html[data-theme="dark"] .bg-amber-100 { background-color:rgba(217,119,6,.28) !important; }
+    html[data-theme="dark"] .bg-orange-50\/70 { background-color:rgba(234,88,12,.18) !important; }
+    html[data-theme="dark"] .bg-red-50,
+    html[data-theme="dark"] .bg-rose-50 { background-color:rgba(225,29,72,.17) !important; }
+    html[data-theme="dark"] .bg-violet-50 { background-color:rgba(124,58,237,.18) !important; }
+
+    html[data-theme="dark"] .text-blue-900,
+    html[data-theme="dark"] .text-blue-800,
+    html[data-theme="dark"] .text-blue-700 { color:#a9cfff !important; }
+    html[data-theme="dark"] .text-blue-600 { color:#7db5ff !important; }
+    html[data-theme="dark"] .text-emerald-900,
+    html[data-theme="dark"] .text-emerald-800,
+    html[data-theme="dark"] .text-emerald-700 { color:#78e6ba !important; }
+    html[data-theme="dark"] .text-amber-900,
+    html[data-theme="dark"] .text-amber-800,
+    html[data-theme="dark"] .text-amber-700 { color:#ffd083 !important; }
+    html[data-theme="dark"] .text-orange-900,
+    html[data-theme="dark"] .text-orange-800,
+    html[data-theme="dark"] .text-orange-700 { color:#ffb47d !important; }
+    html[data-theme="dark"] .text-red-900,
+    html[data-theme="dark"] .text-red-800,
+    html[data-theme="dark"] .text-red-700,
+    html[data-theme="dark"] .text-rose-900,
+    html[data-theme="dark"] .text-rose-800,
+    html[data-theme="dark"] .text-rose-700 { color:#ff9aaa !important; }
+    html[data-theme="dark"] .text-violet-900,
+    html[data-theme="dark"] .text-violet-800,
+    html[data-theme="dark"] .text-violet-700 { color:#c9b7ff !important; }
+
+    html[data-theme="dark"] .border-blue-100,
+    html[data-theme="dark"] .border-blue-200 { border-color:rgba(96,165,250,.38) !important; }
+    html[data-theme="dark"] .border-emerald-100,
+    html[data-theme="dark"] .border-emerald-200 { border-color:rgba(52,211,153,.34) !important; }
+    html[data-theme="dark"] .border-amber-100,
+    html[data-theme="dark"] .border-amber-200 { border-color:rgba(251,191,36,.38) !important; }
+    html[data-theme="dark"] .border-orange-100,
+    html[data-theme="dark"] .border-orange-200 { border-color:rgba(251,146,60,.38) !important; }
+    html[data-theme="dark"] .border-red-200,
+    html[data-theme="dark"] .border-rose-100,
+    html[data-theme="dark"] .border-rose-200 { border-color:rgba(251,113,133,.38) !important; }
+    html[data-theme="dark"] .border-violet-100,
+    html[data-theme="dark"] .border-violet-200 { border-color:rgba(167,139,250,.38) !important; }
+
+    /* Tables */
+    html[data-theme="dark"] .matrix th,
+    html[data-theme="dark"] .matrix td {
+      border-right-color:#2a3b52;
+      border-bottom-color:#2a3b52;
+    }
+    html[data-theme="dark"] .matrix tbody td { background:#111c2e; color:#dce7f5; }
+    html[data-theme="dark"] .matrix tbody td:first-child { background:#111c2e; }
+    html[data-theme="dark"] .matrix .compare-row td,
+    html[data-theme="dark"] .matrix .compare-row td:first-child { background:#17243a; }
+    html[data-theme="dark"] .matrix .editable-row-amber td,
+    html[data-theme="dark"] .matrix .editable-row-amber td:first-child { background:linear-gradient(90deg,#3b2a16 0%,#211d19 100%); }
+    html[data-theme="dark"] .matrix .editable-row-green td,
+    html[data-theme="dark"] .matrix .editable-row-green td:first-child { background:linear-gradient(90deg,#123428 0%,#15251f 100%); }
+    html[data-theme="dark"] .matrix .total-row td,
+    html[data-theme="dark"] .matrix .total-row td:first-child { background:linear-gradient(90deg,#0a2f62,#123f79); color:#fff; }
+    html[data-theme="dark"] .matrix tbody td[colspan] { background:#1b2a40; }
+    html[data-theme="dark"] .matrix .interactive-row:hover td { box-shadow:inset 0 1px 0 rgba(96,165,250,.26),inset 0 -1px 0 rgba(96,165,250,.26); }
+    html[data-theme="dark"] .user-admin-table th { background:#142033; color:#b9c8db; }
+    html[data-theme="dark"] .user-admin-table th,
+    html[data-theme="dark"] .user-admin-table td { border-bottom-color:#2a3b52; }
+    html[data-theme="dark"] .user-admin-table tbody tr:hover td { background:#18263b; }
+    html[data-theme="dark"] table tbody tr { border-color:#2a3b52; }
+
+    /* Components with hard-coded light styles */
+    html[data-theme="dark"] .step { border-color:#344861; background:#17243a; color:#c4d2e4; }
+    html[data-theme="dark"] .step.active { border-color:#3b82f6; background:#172d51; color:#93c5fd; }
+    html[data-theme="dark"] .step.done { border-color:#34d399; background:#12372c; color:#86efac; }
+    html[data-theme="dark"] .step.returned { border-color:#fb923c; background:#3d2818; color:#fdba74; }
+    html[data-theme="dark"] .planning-filter-card { box-shadow:0 14px 34px rgba(0,0,0,.27); }
+    html[data-theme="dark"] .planning-task-card { border-color:#2d4059; background:rgba(17,28,46,.96); box-shadow:0 10px 28px rgba(0,0,0,.20); }
+    html[data-theme="dark"] .planning-task-card:hover { box-shadow:0 15px 34px rgba(0,0,0,.30); }
+    html[data-theme="dark"] .section-toggle-btn { border-color:#3a4d67; background:#17243a; color:#9fb0c7; }
+    html[data-theme="dark"] .section-toggle-btn:hover { background:#1c3357; color:#93c5fd; }
+    html[data-theme="dark"] .scope-picker-row:hover { background:#17263c; border-color:#60a5fa; }
+    html[data-theme="dark"] .scope-picker-row.selected { background:#172d51; border-color:#60a5fa; box-shadow:0 8px 20px rgba(0,0,0,.18); }
+    html[data-theme="dark"] .action-filter-card.active { outline-color:rgba(96,165,250,.19); }
+    html[data-theme="dark"] .skeleton { background:linear-gradient(90deg,#17243a 25%,#22324a 37%,#17243a 63%); background-size:400% 100%; }
+    html[data-theme="dark"] .scrollbar-thin::-webkit-scrollbar-thumb { background:#3a4d67; }
+    html[data-theme="dark"] code { color:#a9cfff; }
+    html[data-theme="dark"] pre { border:1px solid #26364d; }
+
+    /* Login right panel and footer */
+    html[data-theme="dark"] #authScreen section:last-child { background:#111c2e !important; }
+    html[data-theme="dark"] footer { color:#8396af !important; }
+
+    /* Native date / select icons remain visible */
+    html[data-theme="dark"] input[type="date"],
+    html[data-theme="dark"] input[type="datetime-local"],
+    html[data-theme="dark"] input[type="time"] { color-scheme:dark; }
+
   </style>
 </head>
 <body class="min-h-screen">
@@ -340,6 +574,9 @@ const dbClient = window.supabase.createClient(SB_URL, SB_PUBLISHABLE_KEY);</pre>
   </div>
 
   <div id="authScreen" class="hidden min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.18),_transparent_34%),linear-gradient(180deg,_#eff6ff_0%,_#f8fafc_52%,_#eef2ff_100%)] p-4 sm:p-6">
+    <button id="authThemeToggleBtn" type="button" class="theme-toggle-btn grid h-11 w-11 place-items-center rounded-xl border border-slate-200 bg-white/90 text-slate-700 shadow-lg hover:bg-white" title="เปลี่ยนเป็นโหมดมืด" aria-label="สลับโหมดสี">
+      <i id="authThemeToggleIcon" data-lucide="moon" class="h-5 w-5"></i>
+    </button>
     <div class="grid w-full max-w-6xl overflow-hidden rounded-[2rem] border border-white/70 bg-white/90 shadow-[0_30px_80px_rgba(15,23,42,0.18)] backdrop-blur lg:grid-cols-[1.08fr_.92fr]">
       <section class="relative overflow-hidden bg-gradient-to-br from-[#0a2e60] via-[#11458c] to-[#1f6dff] p-8 text-white lg:p-12">
         <div class="pointer-events-none absolute inset-0">
@@ -430,6 +667,7 @@ const dbClient = window.supabase.createClient(SB_URL, SB_PUBLISHABLE_KEY);</pre>
             <div id="userDisplay" class="text-sm font-semibold">Guest</div>
             <div id="userRole" class="text-xs text-blue-200">Test mode</div>
           </div>
+          <button id="themeToggleBtn" type="button" class="theme-toggle-btn grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-white hover:bg-white/20" title="เปลี่ยนเป็นโหมดมืด" aria-label="สลับโหมดสี"><i id="themeToggleIcon" data-lucide="moon" class="h-5 w-5"></i></button>
           <button id="logoutBtn" class="grid h-10 w-10 place-items-center rounded-xl bg-white/10 hover:bg-white/20" title="ออกจากระบบ"><i data-lucide="log-out" class="h-5 w-5"></i></button>
         </div>
       </div>
@@ -833,6 +1071,47 @@ async function fetchAllScopedRows(table,selectFields,orgIds,filters=[],orders=[]
 }
 
 function refreshIcons(){ if(window.lucide) window.lucide.createIcons(); }
+
+const THEME_STORAGE_KEY='workforce-planning-theme';
+function isDarkTheme(){ return document.documentElement.dataset.theme==='dark'; }
+function systemPreferredTheme(){
+  return window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
+}
+function syncThemeToggleUI(){
+  const dark=isDarkTheme();
+  [
+    {button:$('themeToggleBtn'),icon:$('themeToggleIcon')},
+    {button:$('authThemeToggleBtn'),icon:$('authThemeToggleIcon')}
+  ].forEach(({button,icon})=>{
+    if(button){
+      button.title=dark?'เปลี่ยนเป็นโหมดสว่าง':'เปลี่ยนเป็นโหมดมืด';
+      button.setAttribute('aria-label',button.title);
+    }
+    if(icon)icon.setAttribute('data-lucide',dark?'sun':'moon');
+  });
+  refreshIcons();
+}
+function applyTheme(theme,{persist=true,redrawChart=true}={}){
+  const next=theme==='dark'?'dark':'light';
+  document.documentElement.dataset.theme=next;
+  document.documentElement.style.colorScheme=next;
+  if(persist){
+    try{localStorage.setItem(THEME_STORAGE_KEY,next);}catch(_error){}
+  }
+  if(window.Chart){
+    Chart.defaults.color=next==='dark'?'#b9c8db':'#64748b';
+    Chart.defaults.borderColor=next==='dark'?'rgba(148,163,184,.18)':'rgba(148,163,184,.22)';
+  }
+  syncThemeToggleUI();
+  if(redrawChart&&state.chart&&$('planChart'))window.setTimeout(()=>renderChart(),0);
+}
+function initializeTheme(){
+  let saved='';
+  try{saved=localStorage.getItem(THEME_STORAGE_KEY)||'';}catch(_error){}
+  applyTheme(saved==='dark'||saved==='light'?saved:systemPreferredTheme(),{persist:false,redrawChart:false});
+}
+function toggleTheme(){ applyTheme(isDarkTheme()?'light':'dark'); }
+
 function showLoading(show,text='กำลังโหลดข้อมูล...'){ $('loadingText').textContent=text; $('loadingOverlay').classList.toggle('hidden',!show); $('loadingOverlay').classList.toggle('grid',show); }
 function toast(message,type='info'){
   return showNoticeModal({message,type});
@@ -976,6 +1255,7 @@ function errorText(error){
 }
 
 async function init(){
+  initializeTheme();
   refreshIcons();
   if(SB_URL.includes('YOUR_PROJECT') || SB_PUBLISHABLE_KEY.includes('YOUR_')){
     $('setupScreen').classList.remove('hidden'); $('setupScreen').classList.add('flex'); return;
@@ -2868,6 +3148,10 @@ function clearEmployeeListFilters(){
 }
 
 function renderChart(){
+  const dark=isDarkTheme();
+  const chartText=dark?'#c7d4e5':'#64748b';
+  const chartValueText=dark?'#e8eef8':'#334155';
+  const chartGrid=dark?'rgba(148,163,184,.16)':'rgba(148,163,184,.22)';
   const bg26=byLevel('bg26');
   const bg27=byLevel('bg27');
   const labels=LEVELS;
@@ -2908,11 +3192,11 @@ function renderChart(){
 
   const ctx=$('planChart').getContext('2d');
   const blueGradient=ctx.createLinearGradient(0,0,0,280);
-  blueGradient.addColorStop(0,'#60a5fa');
-  blueGradient.addColorStop(1,'#bfdbfe');
+  blueGradient.addColorStop(0,dark?'#60a5fa':'#60a5fa');
+  blueGradient.addColorStop(1,dark?'#234a78':'#bfdbfe');
   const orangeGradient=ctx.createLinearGradient(0,0,0,280);
-  orangeGradient.addColorStop(0,'#f97316');
-  orangeGradient.addColorStop(1,'#fbbf24');
+  orangeGradient.addColorStop(0,dark?'#fb923c':'#f97316');
+  orangeGradient.addColorStop(1,dark?'#7a4b17':'#fbbf24');
 
   const valueLabelPlugin={
     id:'valueLabelPlugin',
@@ -2935,7 +3219,7 @@ function renderChart(){
           const label=isDiff?`${value>0?'+':''}${fmt(value)}`:fmt(value);
           const y=isDiff?element.y-14:element.y-12;
 
-          ctx.fillStyle=isDiff?(value>=0?'#047857':'#be123c'):'#334155';
+          ctx.fillStyle=isDiff?(value>=0?(dark?'#6ee7b7':'#047857'):(dark?'#fda4af':'#be123c')):chartValueText;
           ctx.fillText(label,element.x,y);
         });
       });
@@ -2978,7 +3262,7 @@ function renderChart(){
           borderColor:'#10b981',
           backgroundColor:'rgba(16,185,129,.12)',
           pointBackgroundColor:diffData.map(value=>value>=0?'#10b981':'#ef4444'),
-          pointBorderColor:'#ffffff',
+          pointBorderColor:dark?'#111c2e':'#ffffff',
           pointBorderWidth:2,
           pointRadius:5,
           pointHoverRadius:7,
@@ -3002,11 +3286,16 @@ function renderChart(){
             boxWidth:8,
             boxHeight:8,
             padding:18,
-            font:{weight:'700'}
+            font:{weight:'700'},
+            color:chartText
           }
         },
         tooltip:{
-          backgroundColor:'rgba(15,23,42,.92)',
+          backgroundColor:dark?'rgba(2,6,23,.96)':'rgba(15,23,42,.92)',
+          titleColor:'#f8fafc',
+          bodyColor:'#e2e8f0',
+          borderColor:dark?'#334155':'transparent',
+          borderWidth:dark?1:0,
           titleFont:{weight:'800'},
           bodyFont:{weight:'700'},
           padding:12,
@@ -3033,13 +3322,13 @@ function renderChart(){
       scales:{
         x:{
           grid:{display:false},
-          ticks:{font:{weight:'700'},color:'#64748b'}
+          ticks:{font:{weight:'700'},color:chartText}
         },
         y:{
           beginAtZero:true,
           suggestedMax:maxValue+Math.ceil(maxValue*.18),
-          grid:{color:'rgba(148,163,184,.22)',drawBorder:false},
-          ticks:{precision:0,color:'#64748b',font:{weight:'600'}}
+          grid:{color:chartGrid,drawBorder:false},
+          ticks:{precision:0,color:chartText,font:{weight:'600'}}
         }
       }
     }
@@ -6198,6 +6487,8 @@ async function uploadFile(){
 // Event bindings
 document.querySelectorAll('.nav-btn').forEach(btn=>btn.onclick=()=>switchTab(btn.dataset.tab));
 $('loginForm').onsubmit=async e=>{e.preventDefault();showLoading(true,'กำลังเข้าสู่ระบบ...');const {error}=await dbClient.auth.signInWithPassword({email:$('loginEmail').value,password:$('loginPassword').value});showLoading(false);if(error)toast(errorText(error),'error')};
+const themeToggleBtn=$('themeToggleBtn');if(themeToggleBtn)themeToggleBtn.onclick=toggleTheme;
+const authThemeToggleBtn=$('authThemeToggleBtn');if(authThemeToggleBtn)authThemeToggleBtn.onclick=toggleTheme;
 const loginPasswordToggle=$('loginPasswordToggle');if(loginPasswordToggle)loginPasswordToggle.onclick=()=>{const input=$('loginPassword');const textEl=$('loginPasswordToggleText');if(!input)return;const showing=input.type==='text';input.type=showing?'password':'text';if(textEl)textEl.textContent=showing?'แสดง':'ซ่อน';loginPasswordToggle.innerHTML=`<i data-lucide="${showing?'eye':'eye-off'}" class="h-4 w-4"></i><span id="loginPasswordToggleText">${showing?'แสดง':'ซ่อน'}</span>`;refreshIcons();};
 $('logoutBtn').onclick=async()=>{if(state.session)await dbClient.auth.signOut();location.reload()};
 $('actionSearch').oninput=renderActions;
@@ -6220,6 +6511,17 @@ $('expandAllBtn').onclick=()=>{
 $('refreshActionsBtn').onclick=async()=>{showLoading(true);await Promise.all([loadDashboard(),loadWorkflows()]);showLoading(false);renderActions()};
 const orgGroupFilter=$('orgGroupFilter');if(orgGroupFilter)orgGroupFilter.onchange=e=>changePlanningGroupFilter(e.target.value);$('ulhanaSelect').onchange=e=>loadPlanning(e.target.value);$('refreshPlanningBtn').onclick=()=>loadPlanning(state.currentUlId);$('rebuildBtn').onclick=rebuildSummary;const toggle2026DetailsButton=$('toggle2026DetailsBtn');if(toggle2026DetailsButton)toggle2026DetailsButton.onclick=toggle2026DetailRows;const exportExcelButton=$('exportExcelBtn');if(exportExcelButton)exportExcelButton.onclick=openExportExcelModal;const exportCurrentEmployeesButton=$('exportCurrentEmployeesBtn');if(exportCurrentEmployeesButton)exportCurrentEmployeesButton.onclick=runCurrentEmployeesExport;const changeLogButton=$('changeLogBtn');if(changeLogButton)changeLogButton.onclick=openChangeLogModal;const snapshotButton=$('snapshotBtn');if(snapshotButton)snapshotButton.onclick=openSnapshotModal;
 $('fileUlhanaSelect').onchange=loadFiles;$('uploadBtn').onclick=uploadFile;
+
+if(window.matchMedia){
+  const themeMedia=window.matchMedia('(prefers-color-scheme: dark)');
+  const followSystemTheme=event=>{
+    let saved='';
+    try{saved=localStorage.getItem(THEME_STORAGE_KEY)||'';}catch(_error){}
+    if(!saved)applyTheme(event.matches?'dark':'light',{persist:false});
+  };
+  if(themeMedia.addEventListener)themeMedia.addEventListener('change',followSystemTheme);
+  else if(themeMedia.addListener)themeMedia.addListener(followSystemTheme);
+}
 
 init();
 </script>
