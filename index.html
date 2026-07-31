@@ -825,6 +825,103 @@
       background:#27415f !important;
     }
 
+
+    /* ==========================================================
+       DARK MODE · FLAT ICONS
+       ใช้พื้นสีทึบ ไม่ไล่เฉดสี และตัดแสงเงาสะท้อนบน Icon
+    ========================================================== */
+    html[data-theme="dark"] .icon-3d {
+      background-image: none !important;
+      background-color: #20344f !important;
+      border: 1px solid #49617f !important;
+      box-shadow: 0 3px 10px rgba(0,0,0,.22) !important;
+    }
+    html[data-theme="dark"] .icon-3d::after {
+      display: none !important;
+      content: none !important;
+      background: none !important;
+    }
+
+    /* Icon สีสถานะใน Timeline */
+    html[data-theme="dark"] .icon-3d[class~="text-amber-700"] {
+      background-color: #4a3417 !important;
+      border-color: #8a6427 !important;
+      color: #ffd27a !important;
+    }
+    html[data-theme="dark"] .icon-3d[class~="text-cyan-700"] {
+      background-color: #123d4d !important;
+      border-color: #24728a !important;
+      color: #76e7ff !important;
+    }
+    html[data-theme="dark"] .icon-3d[class~="text-orange-700"] {
+      background-color: #4a2919 !important;
+      border-color: #8d4e29 !important;
+      color: #ffb27a !important;
+    }
+    html[data-theme="dark"] .icon-3d[class~="text-indigo-700"] {
+      background-color: #272d59 !important;
+      border-color: #505ba0 !important;
+      color: #b9c4ff !important;
+    }
+    html[data-theme="dark"] .icon-3d[class~="text-rose-700"] {
+      background-color: #4b2230 !important;
+      border-color: #8f4057 !important;
+      color: #ff9caf !important;
+    }
+    html[data-theme="dark"] .icon-3d[class~="text-purple-700"] {
+      background-color: #3b2854 !important;
+      border-color: #704d96 !important;
+      color: #ddb7ff !important;
+    }
+    html[data-theme="dark"] .icon-3d[class~="text-emerald-700"] {
+      background-color: #163c31 !important;
+      border-color: #2b735c !important;
+      color: #80e9bf !important;
+    }
+    html[data-theme="dark"] .icon-3d[class~="text-blue-700"] {
+      background-color: #173b63 !important;
+      border-color: #356d9d !important;
+      color: #9dcbff !important;
+    }
+    html[data-theme="dark"] .icon-3d[class~="text-slate-400"],
+    html[data-theme="dark"] .icon-3d[class~="text-slate-500"] {
+      background-color: #26374d !important;
+      border-color: #526984 !important;
+      color: #b9c8da !important;
+    }
+    html[data-theme="dark"] .icon-3d[class~="text-white"] {
+      background-color: #2364c7 !important;
+      border-color: #5b95e8 !important;
+      color: #ffffff !important;
+    }
+
+    /* Icon Box ที่ใช้ Tailwind Gradient แต่ไม่ได้ใช้ class icon-3d */
+    html[data-theme="dark"] :is(.grid,.inline-grid)[class*="place-items-center"][class*="bg-gradient-to-"] {
+      background-image: none !important;
+      background-color: #205fae !important;
+      border-color: #4d84c7 !important;
+      box-shadow: 0 3px 10px rgba(0,0,0,.22) !important;
+    }
+
+    /* ปุ่มลอยยังคงแยกประเภทด้วยสีทึบ */
+    html[data-theme="dark"] #changeLogBtn {
+      background-image: none !important;
+      background-color: #6d3bc0 !important;
+      border-color: #9771d5 !important;
+    }
+    html[data-theme="dark"] #snapshotBtn {
+      background-image: none !important;
+      background-color: #1676b8 !important;
+      border-color: #52a4d9 !important;
+    }
+
+    /* ปิด filter/drop-shadow ที่ทำให้ Icon ดูเป็นเงาไล่สี */
+    html[data-theme="dark"] .icon-3d svg,
+    html[data-theme="dark"] :is(.grid,.inline-grid)[class*="place-items-center"][class*="bg-gradient-to-"] svg {
+      filter: none !important;
+      text-shadow: none !important;
+    }
+
   </style>
 </head>
 <body class="min-h-screen">
