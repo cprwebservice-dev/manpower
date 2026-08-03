@@ -2799,12 +2799,12 @@ async function openChangeLogModal(){
     openWideModal(`<div class="overflow-hidden bg-slate-50">
       <div class="border-b border-violet-100 bg-gradient-to-r from-violet-700 via-indigo-600 to-blue-600 px-5 py-5 text-white sm:px-6">
         <div class="flex items-start gap-4">
-          <div class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white/15"><i data-lucide="history" class="h-7 w-7"></i></div>
+          <div class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl ${dark?'bg-black/20 ring-1 ring-white/10':'bg-white/15'}"><i data-lucide="history" class="h-7 w-7"></i></div>
           <div class="min-w-0 flex-1">
             <h3 class="text-xl font-extrabold sm:text-2xl">Change Log · ประวัติการแก้ไข</h3>
             <p class="mt-1 text-sm text-violet-50">${esc(org.ulhana_key||'-')} · ${esc(org.ulhana_name||'-')} · ${fmt(rows.length)} รายการล่าสุด</p>
           </div>
-          <button type="button" onclick="closeModal()" class="grid h-10 w-10 place-items-center rounded-xl bg-white/10 hover:bg-white/20"><i data-lucide="x" class="h-5 w-5"></i></button>
+          <button type="button" onclick="closeModal()" class="grid h-10 w-10 place-items-center rounded-xl ${dark?'bg-[#112947] hover:bg-[#17365d]':'bg-white/10 hover:bg-white/20'}"><i data-lucide="x" class="h-5 w-5"></i></button>
         </div>
       </div>
       <div class="max-h-[75vh] overflow-auto p-4 sm:p-5">
@@ -2873,12 +2873,12 @@ async function openSnapshotModal(){
     openWideModal(`<div class="overflow-hidden bg-slate-50">
       <div class="border-b border-cyan-100 bg-gradient-to-r from-cyan-700 via-blue-600 to-indigo-600 px-5 py-5 text-white sm:px-6">
         <div class="flex items-start gap-4">
-          <div class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white/15"><i data-lucide="camera" class="h-7 w-7"></i></div>
+          <div class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl ${dark?'bg-black/20 ring-1 ring-white/10':'bg-white/15'}"><i data-lucide="camera" class="h-7 w-7"></i></div>
           <div class="min-w-0 flex-1">
             <h3 class="text-xl font-extrabold sm:text-2xl">Snapshot แผนกำลังคน</h3>
             <p class="mt-1 text-sm text-cyan-50">${esc(org.ulhana_key||'-')} · ${esc(org.ulhana_name||'-')} · ${fmt(rows.length)} Snapshot</p>
           </div>
-          <button type="button" onclick="closeModal()" class="grid h-10 w-10 place-items-center rounded-xl bg-white/10 hover:bg-white/20"><i data-lucide="x" class="h-5 w-5"></i></button>
+          <button type="button" onclick="closeModal()" class="grid h-10 w-10 place-items-center rounded-xl ${dark?'bg-[#112947] hover:bg-[#17365d]':'bg-white/10 hover:bg-white/20'}"><i data-lucide="x" class="h-5 w-5"></i></button>
         </div>
       </div>
       <div class="max-h-[75vh] overflow-auto p-4 sm:p-5">
@@ -3140,6 +3140,7 @@ async function openMovementPlanSummary(planYear){
     return toast('สิทธิ์ Admin ไม่สามารถดูรายละเอียดแผนปรับตำแหน่งได้','error');
   }
   const year=Number(planYear);
+  const dark=isDarkTheme();
   const scope=currentPlanningScope();
   if(!scope.orgIds.length)return toast('ไม่พบ ULHANA ตามสิทธิ์','error');
 
@@ -3187,12 +3188,12 @@ async function openMovementPlanSummary(planYear){
       });
 
       const transitionHtml=transitions.length
-        ? transitions.map(item=>`<div class="rounded-xl border border-amber-100 bg-amber-50/70 p-3">
+        ? transitions.map(item=>`<div class="rounded-xl border ${dark?'border-[#8a6431] bg-[#2a241c]':'border-amber-100 bg-amber-50/70'} p-3">
             <div class="flex items-center gap-2">
-              <span class="rounded-lg bg-white px-2 py-1 text-xs font-bold text-slate-700">${esc(item.fromLevel)}</span>
-              <i data-lucide="arrow-right" class="h-4 w-4 text-amber-600"></i>
-              <span class="rounded-lg bg-white px-2 py-1 text-xs font-bold text-slate-700">${esc(item.toLevel)}</span>
-              <span class="ml-auto rounded-full bg-amber-100 px-2.5 py-1 text-xs font-extrabold text-amber-800">${fmt(item.qty)} คน</span>
+              <span class="rounded-lg ${dark?'bg-[#1b2940] text-[#e6edf8]':'bg-white text-slate-700'} px-2 py-1 text-xs font-bold">${esc(item.fromLevel)}</span>
+              <i data-lucide="arrow-right" class="h-4 w-4 ${dark?'text-amber-300':'text-amber-600'}"></i>
+              <span class="rounded-lg ${dark?'bg-[#1b2940] text-[#e6edf8]':'bg-white text-slate-700'} px-2 py-1 text-xs font-bold">${esc(item.toLevel)}</span>
+              <span class="ml-auto rounded-full ${dark?'bg-[#7a5a24] text-[#fff0c7]':'bg-amber-100 text-amber-800'} px-2.5 py-1 text-xs font-extrabold">${fmt(item.qty)} คน</span>
             </div>
             <div class="mt-2 space-y-1">${item.details.map(detail=>{
               const fromOrg=orgMap.get(detail.from_ulhana_id);
@@ -3200,13 +3201,13 @@ async function openMovementPlanSummary(planYear){
               const destinationText=detail.to_ulhana_id&&detail.to_ulhana_id!==detail.from_ulhana_id
                 ? `${toOrg?.ulhana_key||'-'}`
                 : '';
-              return `<div class="rounded-lg bg-white/80 px-2.5 py-2 text-xs text-slate-600">
+              return `<div class="rounded-lg ${dark?'bg-[#16263c] text-[#b8c7da]':'bg-white/80 text-slate-600'} px-2.5 py-2 text-xs">
                 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <span class="font-bold text-slate-800">${esc(detail.employee_code||'-')} · ${esc(detail.employee_name||'-')}</span>
-                  ${scope.overview?`<span class="rounded-full bg-blue-50 px-2 py-0.5 font-semibold text-blue-700">${esc(fromOrg?.ulhana_key||'-')}</span>`:''}
-                  ${destinationText?`<span class="rounded-full bg-violet-50 px-2 py-0.5 font-semibold text-violet-700">ปลายทาง ${esc(destinationText)}</span>`:''}
+                  <span class="font-bold ${dark?'text-[#f2f6fd]':'text-slate-800'}">${esc(detail.employee_code||'-')} · ${esc(detail.employee_name||'-')}</span>
+                  ${scope.overview?`<span class="rounded-full ${dark?'bg-[#16324f] text-[#9fd0ff]':'bg-blue-50 text-blue-700'} px-2 py-0.5 font-semibold">${esc(fromOrg?.ulhana_key||'-')}</span>`:''}
+                  ${destinationText?`<span class="rounded-full ${dark?'bg-[#31224a] text-[#d3bcff]':'bg-violet-50 text-violet-700'} px-2 py-0.5 font-semibold">ปลายทาง ${esc(destinationText)}</span>`:''}
                 </div>
-                <div class="mt-1 text-slate-500">${esc(detail.from_position||'-')} → ${esc(detail.to_position||'-')}</div>
+                <div class="mt-1 ${dark?'text-[#8fa3bd]':'text-slate-500'}">${esc(detail.from_position||'-')} → ${esc(detail.to_position||'-')}</div>
               </div>`;
             }).join('')}</div>
           </div>`).join('')
@@ -3217,16 +3218,16 @@ async function openMovementPlanSummary(planYear){
             'amber'
           );
 
-      return `<section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div class="flex items-center gap-3 border-b border-slate-200 bg-gradient-to-r from-amber-50 to-orange-50 px-4 py-3">
-          <div class="grid h-10 w-10 place-items-center rounded-xl bg-amber-100 text-amber-700"><i data-lucide="calendar-range" class="h-5 w-5"></i></div>
+      return `<section class="overflow-hidden rounded-2xl border ${dark?'border-[#33506f] bg-[#112033] shadow-[0_12px_24px_rgba(0,0,0,.22)]':'border-slate-200 bg-white shadow-sm'}">
+        <div class="flex items-center gap-3 border-b ${dark?'border-[#33506f] bg-gradient-to-r from-[#22344f] to-[#27415f]':'border-slate-200 bg-gradient-to-r from-amber-50 to-orange-50'} px-4 py-3">
+          <div class="grid h-10 w-10 place-items-center rounded-xl ${dark?'bg-[#785722] text-[#ffe3a3]':'bg-amber-100 text-amber-700'}"><i data-lucide="calendar-range" class="h-5 w-5"></i></div>
           <div>
-            <div class="text-xs font-bold text-amber-700">รอบปรับตำแหน่ง</div>
-            <h4 class="font-extrabold text-slate-900">${MONTHS[month-1]} ${year}</h4>
+            <div class="text-xs font-bold ${dark?'text-[#ffcf74]':'text-amber-700'}">รอบปรับตำแหน่ง</div>
+            <h4 class="font-extrabold ${dark?'text-[#f4f7fd]':'text-slate-900'}">${MONTHS[month-1]} ${year}</h4>
           </div>
           <div class="ml-auto text-right">
-            <div class="text-2xl font-extrabold text-amber-700">${fmt(monthTotal)}</div>
-            <div class="text-[11px] text-slate-500">คน</div>
+            <div class="text-2xl font-extrabold ${dark?'text-[#ffd381]':'text-amber-700'}">${fmt(monthTotal)}</div>
+            <div class="text-[11px] ${dark?'text-[#9cb0c8]':'text-slate-500'}">คน</div>
           </div>
         </div>
         <div class="space-y-3 p-4">${transitionHtml}</div>
@@ -3234,35 +3235,35 @@ async function openMovementPlanSummary(planYear){
     }).join('');
 
     const summaryCards=[
-      `<div class="rounded-xl border border-white/20 bg-white/10 p-2.5">
-        <div class="text-[10px] text-amber-50">รวมทั้งปี</div>
+      `<div class="rounded-xl border ${dark?'border-[#e7a33c33] bg-[#ffffff12]':'border-white/20 bg-white/10'} p-2.5">
+        <div class="text-[10px] ${dark?'text-[#ffe7b6]':'text-amber-50'}">รวมทั้งปี</div>
         <div class="text-2xl font-extrabold">${fmt(totalQty)} คน</div>
       </div>`,
-      ...allowedMonths.map(month=>`<div class="rounded-xl border border-white/20 bg-white/10 p-2.5">
-        <div class="text-[10px] text-amber-50">${MONTHS[month-1]}</div>
+      ...allowedMonths.map(month=>`<div class="rounded-xl border ${dark?'border-[#e7a33c33] bg-[#ffffff12]':'border-white/20 bg-white/10'} p-2.5">
+        <div class="text-[10px] ${dark?'text-[#ffe7b6]':'text-amber-50'}">${MONTHS[month-1]}</div>
         <div class="text-2xl font-extrabold">${fmt((monthGroups[month]||[]).reduce((sum,row)=>sum+(Number(row.qty)||1),0))} คน</div>
       </div>`)
     ].join('');
 
-    openModal(`<div class="overflow-hidden bg-slate-50">
-      <div class="border-b border-amber-100 bg-gradient-to-r from-amber-600 via-orange-500 to-orange-400 px-5 py-5 text-white sm:px-6">
+    openModal(`<div class="overflow-hidden ${dark?'bg-[#0f1b2b]':'bg-slate-50'}">
+      <div class="border-b ${dark?'border-[#6b4c1e] bg-gradient-to-r from-[#8a4f05] via-[#a95d08] to-[#bf6d0a]':'border-amber-100 bg-gradient-to-r from-amber-600 via-orange-500 to-orange-400'} px-5 py-5 text-white sm:px-6">
         <div class="flex items-start gap-4">
-          <div class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white/15">
+          <div class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl ${dark?'bg-black/20 ring-1 ring-white/10':'bg-white/15'}">
             <i data-lucide="arrow-right-left" class="h-7 w-7"></i>
           </div>
           <div class="min-w-0 flex-1">
             <h3 class="text-xl font-extrabold sm:text-2xl">สรุปแผนปรับตำแหน่ง ปี ${year}</h3>
-            <p class="mt-1 text-sm text-amber-50">${esc(scope.label)}</p>
+            <p class="mt-1 text-sm ${dark?'text-[#ffe7b6]':'text-amber-50'}">${esc(scope.label)}</p>
           </div>
-          <button type="button" onclick="closeModal()" class="grid h-10 w-10 place-items-center rounded-xl bg-white/10 hover:bg-white/20">
+          <button type="button" onclick="closeModal()" class="grid h-10 w-10 place-items-center rounded-xl ${dark?'bg-[#112947] hover:bg-[#17365d]':'bg-white/10 hover:bg-white/20'}">
             <i data-lucide="x" class="h-5 w-5"></i>
           </button>
         </div>
         <div class="mt-4 grid ${allowedMonths.length===1?'grid-cols-2':'grid-cols-3'} gap-2">${summaryCards}</div>
       </div>
 
-      <div class="max-h-[74vh] overflow-auto p-4 sm:p-5">
-        <div class="mb-4 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+      <div class="max-h-[74vh] overflow-auto p-4 sm:p-5 ${dark?'bg-[#0f1b2b]':''}">
+        <div class="mb-4 rounded-xl border ${dark?'border-[#35506f] bg-[#16283d] text-[#b8d8ff]':'border-blue-100 bg-blue-50 text-blue-800'} px-4 py-3 text-sm">
           แสดงจำนวนการปรับแยกตามระดับต้นทาง → ระดับปลายทาง พร้อมรายชื่อพนักงาน
           ${year===2026?'ในรอบเดือนตุลาคม 2026':'ในรอบเดือนเมษายนและตุลาคม 2027'}
         </div>
@@ -3278,9 +3279,9 @@ async function openMovementPlanSummary(planYear){
         }
       </div>
 
-      <div class="flex flex-col-reverse gap-2 border-t border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-end">
-        <button type="button" onclick="closeModal()" class="rounded-xl border border-slate-300 bg-white px-5 py-2 font-semibold text-slate-700 hover:bg-slate-50">ปิด</button>
-        <button type="button" onclick="openMovementModal(${year})" title="${esc(movementActionTitle)}" ${movementActionLocked?'disabled':''} class="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-5 py-2 font-extrabold text-white shadow-sm transition hover:bg-amber-600 focus:outline-none focus:ring-4 focus:ring-amber-200 disabled:cursor-not-allowed disabled:opacity-50 disabled:grayscale">
+      <div class="flex flex-col-reverse gap-2 border-t ${dark?'border-[#33506f] bg-[#132338]':'border-slate-200 bg-white'} p-4 sm:flex-row sm:items-center sm:justify-end">
+        <button type="button" onclick="closeModal()" class="rounded-xl border ${dark?'border-[#44617f] bg-[#1a2d44] text-[#e8eef9] hover:bg-[#223955]':'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'} px-5 py-2 font-semibold">ปิด</button>
+        <button type="button" onclick="openMovementModal(${year})" title="${esc(movementActionTitle)}" ${movementActionLocked?'disabled':''} class="inline-flex items-center justify-center gap-2 rounded-xl ${dark?'bg-[#f59e0b] hover:bg-[#f0a91f] focus:ring-amber-400/30':'bg-amber-500 hover:bg-amber-600 focus:ring-amber-200'} px-5 py-2 font-extrabold text-white shadow-sm transition focus:outline-none focus:ring-4 disabled:cursor-not-allowed disabled:opacity-50 disabled:grayscale">
           <i data-lucide="arrow-right-left" class="h-4 w-4"></i>ปรับตำแหน่ง ปี ${year}
         </button>
       </div>
@@ -3392,12 +3393,12 @@ async function openHire2027PlanSummary(){
             <h3 class="text-lg font-extrabold sm:text-xl">ปฏิทินแผนรับคนเพิ่ม ปี 2027</h3>
             <p class="mt-1 text-sm text-emerald-50">${esc(scope.label)}</p>
           </div>
-          <button type="button" onclick="closeModal()" class="grid h-10 w-10 place-items-center rounded-xl bg-white/10 hover:bg-white/20"><i data-lucide="x" class="h-5 w-5"></i></button>
+          <button type="button" onclick="closeModal()" class="grid h-10 w-10 place-items-center rounded-xl ${dark?'bg-[#112947] hover:bg-[#17365d]':'bg-white/10 hover:bg-white/20'}"><i data-lucide="x" class="h-5 w-5"></i></button>
         </div>
         <div class="mt-3 grid grid-cols-3 gap-2">
-          <div class="rounded-xl border border-white/20 bg-white/10 p-2.5"><div class="text-[10px] text-emerald-50">ยอดรวมทั้งปี</div><div class="text-xl font-extrabold">${fmt(annualTotal)} คน</div></div>
-          <div class="rounded-xl border border-white/20 bg-white/10 p-2.5"><div class="text-[10px] text-emerald-50">เดือนที่มีแผน</div><div class="text-xl font-extrabold">${fmt(activeMonths)} เดือน</div></div>
-          <div class="rounded-xl border border-white/20 bg-white/10 p-2.5"><div class="text-[10px] text-emerald-50">ตำแหน่งที่รับ</div><div class="text-xl font-extrabold">${fmt(uniquePositions)} ตำแหน่ง</div></div>
+          <div class="rounded-xl border ${dark?'border-[#e7a33c33] bg-[#ffffff12]':'border-white/20 bg-white/10'} p-2.5"><div class="text-[10px] text-emerald-50">ยอดรวมทั้งปี</div><div class="text-xl font-extrabold">${fmt(annualTotal)} คน</div></div>
+          <div class="rounded-xl border ${dark?'border-[#e7a33c33] bg-[#ffffff12]':'border-white/20 bg-white/10'} p-2.5"><div class="text-[10px] text-emerald-50">เดือนที่มีแผน</div><div class="text-xl font-extrabold">${fmt(activeMonths)} เดือน</div></div>
+          <div class="rounded-xl border ${dark?'border-[#e7a33c33] bg-[#ffffff12]':'border-white/20 bg-white/10'} p-2.5"><div class="text-[10px] text-emerald-50">ตำแหน่งที่รับ</div><div class="text-xl font-extrabold">${fmt(uniquePositions)} ตำแหน่ง</div></div>
         </div>
       </div>
       <div class="max-h-[58vh] overflow-y-auto p-3.5 sm:p-4">
@@ -3421,7 +3422,7 @@ async function openHire2027PlanSummary(){
           <span>แสดงข้อมูล 12 เดือน แบบ 3 แถว แถวละ 4 เดือน</span>
         </div>
       </div>
-      <div class="flex flex-col-reverse gap-2 border-t border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-end">
+      <div class="flex flex-col-reverse gap-2 border-t ${dark?'border-[#33506f] bg-[#132338]':'border-slate-200 bg-white'} p-4 sm:flex-row sm:items-center sm:justify-end">
         <button type="button" onclick="closeModal()" class="inline-flex h-11 min-w-[170px] items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-2 font-semibold text-slate-700 hover:bg-slate-50">ปิด</button>
         <button type="button" onclick="openHireModal()" title="${esc(hireActionTitle)}" ${hireActionLocked?'disabled':''} class="inline-flex h-11 min-w-[170px] items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-2 font-extrabold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-200 disabled:cursor-not-allowed disabled:opacity-50 disabled:grayscale">
           <i data-lucide="user-plus" class="h-4 w-4"></i>แผนรับคน ปี 2027
@@ -3739,7 +3740,7 @@ function renderSpotlight(){
 
   const metrics=state.spotlightMetrics||{};
   const movementCards=`<div class="grid gap-3 sm:grid-cols-2">
-    <div class="rounded-xl border border-amber-100 bg-amber-50/70 p-3">
+    <div class="rounded-xl border ${dark?'border-[#8a6431] bg-[#2a241c]':'border-amber-100 bg-amber-50/70'} p-3">
       <div class="text-xs font-bold text-amber-700">ปรับตำแหน่ง ปี 2026</div>
       <div class="mt-1 text-2xl font-extrabold text-slate-900">${fmt(metrics.movement2026Count||0)} คน</div>
       <div class="text-sm font-semibold text-amber-700">${(metrics.movement2026Pct||0).toFixed(1)}%</div>
@@ -4136,7 +4137,7 @@ async function openHirePositionRequestModal(){
   openModal(`<div class="overflow-hidden bg-white">
     <div class="border-b border-violet-100 bg-gradient-to-r from-violet-700 via-indigo-600 to-blue-600 px-5 py-5 text-white sm:px-6">
       <div class="flex items-start gap-4">
-        <div class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white/15"><i data-lucide="badge-plus" class="h-7 w-7"></i></div>
+        <div class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl ${dark?'bg-black/20 ring-1 ring-white/10':'bg-white/15'}"><i data-lucide="badge-plus" class="h-7 w-7"></i></div>
         <div class="min-w-0 flex-1">
           <h3 class="text-xl font-extrabold sm:text-2xl">ขอเพิ่มตำแหน่งรับคน ปี 2027</h3>
           <p class="mt-1 text-sm text-violet-50">${esc(org.ulhana_key||'-')} · ${esc(org.ulhana_name||'-')}</p>
@@ -4279,16 +4280,16 @@ async function openHirePositionRequestAdminModal(){
     openWideModal(`<div class="overflow-hidden bg-slate-50">
       <div class="border-b border-violet-100 bg-gradient-to-r from-violet-700 via-indigo-600 to-blue-600 px-5 py-5 text-white sm:px-6">
         <div class="flex items-start gap-4">
-          <div class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white/15"><i data-lucide="clipboard-check" class="h-7 w-7"></i></div>
+          <div class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl ${dark?'bg-black/20 ring-1 ring-white/10':'bg-white/15'}"><i data-lucide="clipboard-check" class="h-7 w-7"></i></div>
           <div class="min-w-0 flex-1">
             <h3 class="text-xl font-extrabold sm:text-2xl">คำขอเพิ่มตำแหน่งรับคน ปี 2027</h3>
             <p class="mt-1 text-sm text-violet-50">รอตรวจสอบ ${fmt(pendingRows.length)} รายการ · รวมทั้งหมด ${fmt(rows.length)} รายการ</p>
           </div>
-          <button type="button" onclick="closeModal()" class="grid h-10 w-10 place-items-center rounded-xl bg-white/10 hover:bg-white/20"><i data-lucide="x" class="h-5 w-5"></i></button>
+          <button type="button" onclick="closeModal()" class="grid h-10 w-10 place-items-center rounded-xl ${dark?'bg-[#112947] hover:bg-[#17365d]':'bg-white/10 hover:bg-white/20'}"><i data-lucide="x" class="h-5 w-5"></i></button>
         </div>
       </div>
       <div class="max-h-[75vh] overflow-auto p-4 sm:p-5">
-        <div class="mb-4 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+        <div class="mb-4 rounded-xl border ${dark?'border-[#35506f] bg-[#16283d] text-[#b8d8ff]':'border-blue-100 bg-blue-50 text-blue-800'} px-4 py-3 text-sm">
           เมื่ออนุมัติ ระบบจะเพิ่มตำแหน่งเข้า <b>hire_position_permissions</b> และตำแหน่งนั้นจะแสดงใน Popup แผนรับคนของ ULHANA นั้นทันที
         </div>
         <div class="space-y-3">${body}</div>
