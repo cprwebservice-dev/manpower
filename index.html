@@ -2739,6 +2739,7 @@ function summarizeJsonBrief(value){
 }
 
 async function openChangeLogModal(){
+  const dark=isDarkTheme();
   if(isAllOverview())return toast('กรุณาเลือก ULHANA รายหน่วยงานก่อนดู Change Log','error');
 
   showLoading(true,'กำลังโหลดประวัติการแก้ไข...');
@@ -2819,6 +2820,7 @@ async function openChangeLogModal(){
 }
 
 async function openSnapshotModal(){
+  const dark=isDarkTheme();
   if(isAllOverview())return toast('กรุณาเลือก ULHANA รายหน่วยงานก่อนดู Snapshot','error');
 
   showLoading(true,'กำลังโหลด Snapshot...');
@@ -3303,6 +3305,7 @@ function openMovement2027PlanSummary(){
 }
 
 async function openHire2027PlanSummary(){
+  const dark=isDarkTheme();
   const scope=currentPlanningScope();
   if(!scope.orgIds.length)return toast('ไม่พบ ULHANA ตามสิทธิ์','error');
   showLoading(true,'กำลังจัดทำปฏิทินแผนรับคน ปี 2027...');
@@ -3735,6 +3738,7 @@ function aggregatePositionItems(field){
   return [...totals.entries()].filter(([,value])=>value!==0).sort((a,b)=>String(a[0]).localeCompare(String(b[0]),'th')).map(([name,value])=>`${name} ${fmt(value)} คน`);
 }
 function renderSpotlight(){
+  const dark=isDarkTheme();
   const b26=byLevel('bg26').Total,b27=byLevel('bg27').Total,diff=b27-b26,pct=b26?diff/b26*100:0;
   $('changeCard').innerHTML=`<div class="text-xs text-blue-100">ภาพรวมปี 2027 เทียบปี 2026</div><div class="mt-1 text-2xl font-extrabold">${diff>0?'+':''}${fmt(diff)} คน</div><div class="text-sm">${pct>0?'+':''}${pct.toFixed(1)}%</div>`;
 
@@ -4125,6 +4129,7 @@ function hirePositionOptionLabel(item){
 }
 
 async function openHirePositionRequestModal(){
+  const dark=isDarkTheme();
   if(isAllOverview())return toast('กรุณาเลือก ULHANA รายหน่วยงานก่อนส่งคำขอ','error');
   if(state.profile?.role!=='User'&&!canHrAdminEditSubmitted())return toast('Role นี้ไม่สามารถส่งคำขอเพิ่มตำแหน่งได้','error');
 
@@ -4224,6 +4229,7 @@ async function submitHirePositionRequest(){
 }
 
 async function openHirePositionRequestAdminModal(){
+  const dark=isDarkTheme();
   if(!isHrAdminOrSuperAdmin())return toast('เฉพาะ HR Admin หรือ Super Admin เท่านั้น','error');
 
   showLoading(true,'กำลังโหลดคำขอเพิ่มตำแหน่งรับคน...');
