@@ -3454,6 +3454,16 @@ async function openEmployeeListModal(){
     ]);
     const orgMap=new Map(state.orgUnits.map(item=>[item.id,item]));
     const waitingQty=waiting.reduce((sum,row)=>sum+(Number(row.qty)||0),0);
+    const employeeLevels=[...new Set(
+      employees
+        .map(row=>String(row.level||'').trim())
+        .filter(Boolean)
+    )].sort((a,b)=>{
+      const ia=LEVELS.indexOf(a);
+      const ib=LEVELS.indexOf(b);
+      if(ia!==ib)return (ia<0?999:ia)-(ib<0?999:ib);
+      return String(a).localeCompare(String(b),'th');
+    });
     const total=employees.length+waitingQty;
     const org=currentOrg();
     const dateText=value=>value?new Date(`${value}T00:00:00`).toLocaleDateString('th-TH'):'-';
@@ -3476,7 +3486,7 @@ async function openEmployeeListModal(){
           <label class="text-xs font-bold text-slate-500">ระดับ
             <select id="employeeListSearchLevel" onchange="filterEmployeeListModal()" class="mt-1 h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100">
               <option value="">ทุกระดับ</option>
-              ${LEVELS.map(level=>`<option value="${esc(level)}">${esc(level)}</option>`).join('')}
+              ${employeeLevels.map(level=>`<option value="${esc(level)}">${esc(level)}</option>`).join('')}
             </select>
           </label>
           <label class="text-xs font-bold text-slate-500">หน่วยงาน
@@ -3499,20 +3509,42 @@ function filterEmployeeListModal(){
   const name=employeeFilterText($('employeeListSearchName')?.value);
   const level=employeeFilterText($('employeeListSearchLevel')?.value);
   const department=employeeFilterText($('employeeListSearchDepartment')?.value);
-  const matches=row=>{
+
+  const matchesCommon=row=>{
     const rowName=employeeFilterText(row.dataset.name);
-    const rowLevel=employeeFilterText(row.dataset.level);
     const rowDepartment=employeeFilterText(row.dataset.department);
-    return (!name||rowName.includes(name))&&(!level||rowLevel===level)&&(!department||rowDepartment.includes(department));
+    return (!name||rowName.includes(name))&&(!department||rowDepartment.includes(department));
   };
+
+  // ตัวกรองระดับใช้กับพนักงานปัจจุบันเท่านั้น
+  const matchesEmployee=row=>{
+    const rowLevel=employeeFilterText(row.dataset.level);
+    return matchesCommon(row)&&(!level||rowLevel===level);
+  };
+
+  // รายการค้างรับ/รอเริ่มงานคงใช้เฉพาะชื่อและหน่วยงาน ไม่ใช้ตัวกรองระดับ
+  const matchesWaiting=row=>matchesCommon(row);
+
   const employeeRows=[...document.querySelectorAll('[data-employee-row]')];
   const waitingRows=[...document.querySelectorAll('[data-waiting-row]')];
   let employeeVisible=0;
   let waitingVisible=0;
-  employeeRows.forEach(row=>{const visible=matches(row);row.classList.toggle('hidden',!visible);if(visible)employeeVisible++;});
-  waitingRows.forEach(row=>{const visible=matches(row);row.classList.toggle('hidden',!visible);if(visible)waitingVisible+=Number(row.dataset.qty)||0;});
+
+  employeeRows.forEach(row=>{
+    const visible=matchesEmployee(row);
+    row.classList.toggle('hidden',!visible);
+    if(visible)employeeVisible++;
+  });
+
+  waitingRows.forEach(row=>{
+    const visible=matchesWaiting(row);
+    row.classList.toggle('hidden',!visible);
+    if(visible)waitingVisible+=Number(row.dataset.qty)||0;
+  });
+
   $('employeeCurrentNoMatch')?.classList.toggle('hidden',employeeVisible>0||employeeRows.length===0);
   $('employeeWaitingNoMatch')?.classList.toggle('hidden',waitingVisible>0||waitingRows.length===0);
+
   const result=$('employeeFilterResult');
   if(result){
     const hasFilter=Boolean(name||level||department);
