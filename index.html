@@ -3454,9 +3454,31 @@ async function openEmployeeListModal(){
     ]);
     const orgMap=new Map(state.orgUnits.map(item=>[item.id,item]));
     const waitingQty=waiting.reduce((sum,row)=>sum+(Number(row.qty)||0),0);
+
+    // ระดับใน Popup ต้องอ้างจากพนักงานปัจจุบันเท่านั้น
+    // หาก employees.level ว่าง ให้คำนวณจาก PCgrade ตามโครงสร้างระดับของระบบ
+    const employeeLevelForList=row=>{
+      const storedLevel=String(row?.level||'').trim();
+      if(storedLevel)return storedLevel;
+
+      const grade=String(row?.pc_grade||'').trim().toUpperCase();
+      if(/^1[ABC]$/.test(grade))return 'AVP';
+      if(/^2[ABC]$/.test(grade))return 'GM';
+      if(/^3[ABC]$/.test(grade))return 'ฝ่าย';
+      if(/^4[ABC]$/.test(grade))return 'แผนก';
+      if(/^(5[ABC]|6A)$/.test(grade))return 'จนท.';
+      if(grade==='6B')return 'PT';
+      return '';
+    };
+
+    const currentEmployeeRows=employees.map(row=>({
+      ...row,
+      employee_list_level:employeeLevelForList(row)
+    }));
+
     const employeeLevels=[...new Set(
-      employees
-        .map(row=>String(row.level||'').trim())
+      currentEmployeeRows
+        .map(row=>row.employee_list_level)
         .filter(Boolean)
     )].sort((a,b)=>{
       const ia=LEVELS.indexOf(a);
@@ -3468,7 +3490,7 @@ async function openEmployeeListModal(){
     const org=currentOrg();
     const dateText=value=>value?new Date(`${value}T00:00:00`).toLocaleDateString('th-TH'):'-';
     const scopeText=overview?`ภาพรวมทั้งหมด · ${fmt(state.orgUnits.length)} ULHANA ตามสิทธิ์`:`${org.ulhana_key||''} · ${org.ulhana_name||''}`;
-    const employeeRows=employees.length?employees.map((e,index)=>{const unit=orgMap.get(e.ulhana_id)||{};return `<tr data-employee-row data-name="${esc(e.full_name||'')}" data-level="${esc(e.level||'')}" data-department="${esc([e.department,unit.ulhana_key,unit.ulhana_name,unit.group_name,unit.office].filter(Boolean).join(' '))}" class="border-b border-slate-100 last:border-0"><td class="p-2 text-center">${index+1}</td>${overview?`<td class="p-2 font-semibold text-blue-700">${esc(unit.ulhana_key||'-')}</td>`:''}<td class="p-2 font-semibold">${esc(e.employee_code||'-')}</td><td class="p-2">${esc(e.full_name||'-')}</td><td class="p-2 text-center">${esc(e.pc_grade||'-')}</td><td class="p-2 text-center">${esc(e.level||'-')}</td><td class="p-2">${esc(e.position_name||'-')}</td><td class="p-2">${esc(e.department||'-')}</td><td class="p-2 text-center">${dateText(e.start_date)}</td></tr>`}).join(''):`<tr><td colspan="${overview?9:8}" class="p-8 text-center text-slate-400">ไม่พบพนักงานปัจจุบัน</td></tr>`;
+    const employeeRows=currentEmployeeRows.length?currentEmployeeRows.map((e,index)=>{const unit=orgMap.get(e.ulhana_id)||{};const employeeLevel=e.employee_list_level||'-';return `<tr data-employee-row data-name="${esc(e.full_name||'')}" data-level="${esc(employeeLevel==='-'?'':employeeLevel)}" data-department="${esc([e.department,unit.ulhana_key,unit.ulhana_name,unit.group_name,unit.office].filter(Boolean).join(' '))}" class="border-b border-slate-100 last:border-0"><td class="p-2 text-center">${index+1}</td>${overview?`<td class="p-2 font-semibold text-blue-700">${esc(unit.ulhana_key||'-')}</td>`:''}<td class="p-2 font-semibold">${esc(e.employee_code||'-')}</td><td class="p-2">${esc(e.full_name||'-')}</td><td class="p-2 text-center">${esc(e.pc_grade||'-')}</td><td class="p-2 text-center">${esc(employeeLevel)}</td><td class="p-2">${esc(e.position_name||'-')}</td><td class="p-2">${esc(e.department||'-')}</td><td class="p-2 text-center">${dateText(e.start_date)}</td></tr>`}).join(''):`<tr><td colspan="${overview?9:8}" class="p-8 text-center text-slate-400">ไม่พบพนักงานปัจจุบัน</td></tr>`;
     const waitingRows=waiting.length?waiting.map((r,index)=>{const unit=orgMap.get(r.ulhana_id)||{};return `<tr data-waiting-row data-name="${esc(r.candidate_name||'')}" data-level="${esc(r.level||'')}" data-department="${esc([unit.ulhana_key,unit.ulhana_name,unit.group_name,unit.office].filter(Boolean).join(' '))}" data-qty="${Number(r.qty)||0}" class="border-b border-slate-100 last:border-0"><td class="p-2 text-center">${index+1}</td>${overview?`<td class="p-2 font-semibold text-blue-700">${esc(unit.ulhana_key||'-')}</td>`:''}<td class="p-2 font-semibold">${esc(r.running_no||'-')}</td><td class="p-2">${esc(r.candidate_name||'ยังไม่ระบุชื่อ')}</td><td class="p-2 text-center">${esc(r.level||'-')}</td><td class="p-2">${esc(r.position_name||'-')}</td><td class="p-2 text-center font-bold">${fmt(r.qty||0)}</td><td class="p-2">${esc(r.owner_name||'-')}</td><td class="p-2 text-center">${dateText(r.request_date)}</td></tr>`}).join(''):`<tr><td colspan="${overview?9:8}" class="p-8 text-center text-slate-400">ไม่มีรายการค้างรับ รอเริ่มงาน</td></tr>`;
     openModal(`<div class="border-b border-slate-200 p-5"><div class="flex items-start gap-3"><div class="rounded-xl bg-blue-50 p-2 text-blue-700"><i data-lucide="users" class="h-6 w-6"></i></div><div><h3 class="text-xl font-bold">รายชื่อกำลังคนปัจจุบันและผู้รอเริ่มงาน</h3><p class="text-sm text-slate-500">${esc(scopeText)}</p></div><button type="button" onclick="closeModal()" class="ml-auto rounded-lg p-2 hover:bg-slate-100"><i data-lucide="x" class="h-5 w-5"></i></button></div></div><div class="max-h-[78vh] overflow-auto p-5"><div class="mb-4 grid gap-3 sm:grid-cols-3"><div class="rounded-xl border border-blue-100 bg-blue-50 p-4"><div class="text-xs font-semibold text-blue-600">พนักงานปัจจุบัน</div><div class="mt-1 text-2xl font-extrabold text-blue-800">${fmt(employees.length)} คน</div></div><div class="rounded-xl border border-amber-100 bg-amber-50 p-4"><div class="text-xs font-semibold text-amber-600">ค้างรับ รอเริ่มงาน</div><div class="mt-1 text-2xl font-extrabold text-amber-800">${fmt(waitingQty)} คน</div></div><div class="rounded-xl border border-emerald-100 bg-emerald-50 p-4"><div class="text-xs font-semibold text-emerald-600">รวมแถว ACT26</div><div class="mt-1 text-2xl font-extrabold text-emerald-800">${fmt(total)} คน</div></div></div>
       <div class="mb-4 rounded-2xl border border-slate-200 bg-slate-50/80 p-3 sm:p-4">
