@@ -3174,28 +3174,39 @@ function currentPlanningScope(){
 }
 
 async function fetchAllMovementPlanRows(orgIds,planYear){
-  const rows=[];
+  const rowMap=new Map();
   const ids=[...new Set((orgIds||[]).filter(Boolean))];
+  const selectColumns='id,plan_year,effective_month,employee_code,employee_name,from_level,to_level,from_position,to_position,qty,from_ulhana_id,to_ulhana_id,status';
+
   for(let chunkStart=0;chunkStart<ids.length;chunkStart+=100){
     const idChunk=ids.slice(chunkStart,chunkStart+100);
-    let from=0;
-    while(true){
-      const {data,error}=await dbClient.from('movement_plans')
-        .select('id,plan_year,effective_month,employee_code,employee_name,from_level,to_level,from_position,to_position,qty,from_ulhana_id,to_ulhana_id,status')
-        .in('from_ulhana_id',idChunk)
-        .eq('plan_year',Number(planYear))
-        .eq('status','active')
-        .order('effective_month')
-        .order('from_level')
-        .order('employee_code')
-        .range(from,from+999);
-      if(error)throw error;
-      rows.push(...(data||[]));
-      if(!data||data.length<1000)break;
-      from+=1000;
+
+    // แสดงทั้งรายการที่ ULHANA เป็นหน่วยงานต้นทาง และเป็น ULPromote ปลายทาง
+    for(const scopeColumn of ['from_ulhana_id','to_ulhana_id']){
+      let from=0;
+      while(true){
+        const {data,error}=await dbClient.from('movement_plans')
+          .select(selectColumns)
+          .in(scopeColumn,idChunk)
+          .eq('plan_year',Number(planYear))
+          .eq('status','active')
+          .order('effective_month')
+          .order('from_level')
+          .order('employee_code')
+          .range(from,from+999);
+        if(error)throw error;
+        (data||[]).forEach(row=>rowMap.set(row.id,row));
+        if(!data||data.length<1000)break;
+        from+=1000;
+      }
     }
   }
-  return rows;
+
+  return [...rowMap.values()].sort((a,b)=>
+    Number(a.effective_month||0)-Number(b.effective_month||0)
+    || String(a.from_level||'').localeCompare(String(b.from_level||''),'th')
+    || String(a.employee_code||'').localeCompare(String(b.employee_code||''),'th')
+  );
 }
 
 async function loadSpotlightMetrics(orgIds){
@@ -3299,14 +3310,19 @@ async function openMovementPlanSummary(planYear){
             <div class="mt-2 space-y-1">${item.details.map(detail=>{
               const fromOrg=orgMap.get(detail.from_ulhana_id);
               const toOrg=orgMap.get(detail.to_ulhana_id);
+              const scopedIds=new Set(scope.orgIds.map(id=>String(id)));
+              const sourceInScope=scopedIds.has(String(detail.from_ulhana_id||''));
+              const destinationInScope=scopedIds.has(String(detail.to_ulhana_id||''));
+              const incomingOnly=destinationInScope&&!sourceInScope;
               const destinationText=detail.to_ulhana_id&&detail.to_ulhana_id!==detail.from_ulhana_id
                 ? `${toOrg?.ulhana_key||'-'}`
                 : '';
               return `<div class="rounded-lg ${dark?'bg-[#16263c] text-[#b8c7da]':'bg-white/80 text-slate-600'} px-2.5 py-2 text-xs">
                 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
                   <span class="font-bold ${dark?'text-[#f2f6fd]':'text-slate-800'}">${esc(detail.employee_code||'-')} · ${esc(detail.employee_name||'-')}</span>
-                  ${scope.overview?`<span class="rounded-full ${dark?'bg-[#16324f] text-[#9fd0ff]':'bg-blue-50 text-blue-700'} px-2 py-0.5 font-semibold">${esc(fromOrg?.ulhana_key||'-')}</span>`:''}
+                  <span class="rounded-full ${dark?'bg-[#16324f] text-[#9fd0ff]':'bg-blue-50 text-blue-700'} px-2 py-0.5 font-semibold">ต้นทาง ${esc(fromOrg?.ulhana_key||'-')}</span>
                   ${destinationText?`<span class="rounded-full ${dark?'bg-[#31224a] text-[#d3bcff]':'bg-violet-50 text-violet-700'} px-2 py-0.5 font-semibold">ปลายทาง ${esc(destinationText)}</span>`:''}
+                  ${incomingOnly?`<span class="rounded-full ${dark?'bg-[#3c2a20] text-[#ffd4ad]':'bg-orange-50 text-orange-700'} px-2 py-0.5 font-semibold">ดูอย่างเดียว · แก้ไขที่ต้นทาง</span>`:''}
                 </div>
                 <div class="mt-1 ${dark?'text-[#8fa3bd]':'text-slate-500'}">${esc(detail.from_position||'-')} → ${esc(detail.to_position||'-')}</div>
               </div>`;
@@ -3367,6 +3383,7 @@ async function openMovementPlanSummary(planYear){
         <div class="mb-4 rounded-xl border ${dark?'border-[#35506f] bg-[#16283d] text-[#b8d8ff]':'border-blue-100 bg-blue-50 text-blue-800'} px-4 py-3 text-sm">
           แสดงจำนวนการปรับแยกตามระดับต้นทาง → ระดับปลายทาง พร้อมรายชื่อพนักงาน
           ${year===2026?'ในรอบเดือนตุลาคม 2026':'ในรอบเดือนเมษายนและตุลาคม 2027'}
+          <div class="mt-1 text-xs font-semibold">รวมรายการที่ ULHANA เป็นทั้งต้นทางและ ULPromote ปลายทาง โดยรายการปลายทางเป็นข้อมูลดูอย่างเดียว และต้องแก้ไขจาก ULHANA ต้นทาง</div>
         </div>
 
         ${rows.length
@@ -4816,6 +4833,40 @@ function movementMonthLabel(year,month){
   return `${MONTHS[Number(month)-1] || month} ${year}`;
 }
 
+async function fetchMovementPlansForOrg(orgId){
+  const selectColumns='*, from_ulhana:org_units!movement_plans_from_ulhana_id_fkey(ulhana_key,ulhana_name), to_ulhana:org_units!movement_plans_to_ulhana_id_fkey(ulhana_key,ulhana_name)';
+  const [sourceRes,destinationRes]=await Promise.all([
+    dbClient.from('movement_plans')
+      .select(selectColumns)
+      .eq('from_ulhana_id',orgId)
+      .eq('status','active')
+      .order('plan_year')
+      .order('effective_month')
+      .order('created_at',{ascending:false}),
+    dbClient.from('movement_plans')
+      .select(selectColumns)
+      .eq('to_ulhana_id',orgId)
+      .eq('status','active')
+      .order('plan_year')
+      .order('effective_month')
+      .order('created_at',{ascending:false})
+  ]);
+  if(sourceRes.error)throw sourceRes.error;
+  if(destinationRes.error)throw destinationRes.error;
+
+  const rowMap=new Map();
+  [...(sourceRes.data||[]),...(destinationRes.data||[])].forEach(row=>rowMap.set(row.id,row));
+  return [...rowMap.values()].sort((a,b)=>
+    Number(a.plan_year||0)-Number(b.plan_year||0)
+    || Number(a.effective_month||0)-Number(b.effective_month||0)
+    || String(b.created_at||'').localeCompare(String(a.created_at||''))
+  );
+}
+
+function isMovementSourceForCurrentOrg(plan){
+  return String(plan?.from_ulhana_id||'')===String(state.currentUlId||'');
+}
+
 async function openMovementModal(initialYear=preferredMovementYear()){
   if(isAllOverview())return toast('กรุณาเลือก ULHANA รายหน่วยงานก่อนบันทึกปรับตำแหน่ง','error');
   if(!canEdit())return toast('Role นี้ดูข้อมูลได้อย่างเดียว','error');
@@ -4823,25 +4874,18 @@ async function openMovementModal(initialYear=preferredMovementYear()){
   const safeInitialYear=requestedYear===2027&&!hasConfirmedYear2026()?2026:requestedYear;
   showLoading(true,'กำลังเตรียมข้อมูลปรับตำแหน่ง...');
   try{
-    const [employeeRes,movementRes]=await Promise.all([
+    const [employeeRes,movementRows]=await Promise.all([
       dbClient.from('employees')
         .select('*, ul_promote:org_units!employees_ul_promote_id_fkey(id,ulhana_key,ulhana_name)')
         .eq('ulhana_id',state.currentUlId)
         .eq('active',true)
         .order('pc_grade')
         .order('employee_code'),
-      dbClient.from('movement_plans')
-        .select('*, to_ulhana:org_units!movement_plans_to_ulhana_id_fkey(ulhana_key,ulhana_name)')
-        .eq('from_ulhana_id',state.currentUlId)
-        .eq('status','active')
-        .order('plan_year')
-        .order('effective_month')
-        .order('created_at',{ascending:false})
+      fetchMovementPlansForOrg(state.currentUlId)
     ]);
     if(employeeRes.error)throw employeeRes.error;
-    if(movementRes.error)throw movementRes.error;
     state.moveEmployees=employeeRes.data||[];
-    state.movePlans=movementRes.data||[];
+    state.movePlans=movementRows||[];
 
     const o=currentOrg();
     openModal(`<div class="border-b p-5">
@@ -4857,6 +4901,7 @@ async function openMovementModal(initialYear=preferredMovementYear()){
     <div class="max-h-[76vh] overflow-auto p-5">
       <div class="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
         ระบบล็อกประเภทรายการเป็น <b>“ปรับตำแหน่ง”</b> จำนวน <b>1 คนต่อรายการ</b> และเป็นการปรับตำแหน่งข้าม PC ตามเงื่อนไขเดิม
+        <div class="mt-1 text-xs font-semibold">รายการที่ ULHANA นี้เป็น ULPromote ปลายทางจะแสดงรายชื่อให้ตรวจสอบได้ แต่แก้ไขหรือลบได้เฉพาะที่ ULHANA ต้นทาง</div>
       </div>
       <div id="movementLockNotice" class="mb-4 hidden rounded-xl border p-3 text-sm font-semibold"></div>
 
@@ -4961,7 +5006,7 @@ function renderMovementYear(){
   const period=year===2026?'เฉพาะเดือนตุลาคม 2026':'เฉพาะเดือนเมษายนและตุลาคม 2027';
   if($('movementModalTitle'))$('movementModalTitle').textContent=`ปรับตำแหน่ง ปี ${year}`;
   if($('movementPeriodText'))$('movementPeriodText').textContent=`ดำเนินการ ${period} และเป็นการปรับตำแหน่งข้าม PC เท่านั้น`;
-  if($('movementListCaption'))$('movementListCaption').textContent=`รายการปรับตำแหน่งที่มีผลในปี ${year}`;
+  if($('movementListCaption'))$('movementListCaption').textContent=`รายการปรับตำแหน่งที่ ULHANA นี้เป็นต้นทางหรือ ULPromote ปลายทางในปี ${year}`;
 
   const notice=$('movementLockNotice');
   const message=yearLockMessage(year);
@@ -5052,40 +5097,49 @@ function renderMovePreview(){
 function renderMovementList(){
   const year=selectedMovementYear();
   const rows=(state.movePlans||[]).filter(p=>Number(p.plan_year)===year&&p.status==='active');
-  if($('movementCountBadge'))$('movementCountBadge').textContent=`${rows.length} รายการ`;
+  const sourceCount=rows.filter(isMovementSourceForCurrentOrg).length;
+  const destinationCount=rows.length-sourceCount;
+  if($('movementCountBadge'))$('movementCountBadge').textContent=`${rows.length} รายการ · ต้นทาง ${sourceCount} · ปลายทาง ${destinationCount}`;
   if(!rows.length){
     $('movementList').innerHTML='<div class="rounded-xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500">ยังไม่มีรายการปรับตำแหน่งในปีนี้</div>';
     return;
   }
   $('movementList').innerHTML=rows.map(p=>{
-    const toName=p.to_ulhana?`${p.to_ulhana.ulhana_key||''} · ${p.to_ulhana.ulhana_name||''}`:'-';
-    return `<div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+    const isSource=isMovementSourceForCurrentOrg(p);
+    const fromOrg=p.from_ulhana||state.orgUnits.find(item=>String(item.id)===String(p.from_ulhana_id));
+    const toOrg=p.to_ulhana||state.orgUnits.find(item=>String(item.id)===String(p.to_ulhana_id));
+    const fromName=fromOrg?`${fromOrg.ulhana_key||''} · ${fromOrg.ulhana_name||''}`:'-';
+    const toName=toOrg?`${toOrg.ulhana_key||''} · ${toOrg.ulhana_name||''}`:'-';
+    const directionBadge=isSource
+      ? '<span class="rounded-full bg-blue-100 px-2.5 py-1 text-[11px] font-extrabold text-blue-700">ULHANA ต้นทาง</span>'
+      : '<span class="rounded-full bg-violet-100 px-2.5 py-1 text-[11px] font-extrabold text-violet-700">ULPromote ปลายทาง · ดูอย่างเดียว</span>';
+    return `<div class="rounded-xl border ${isSource?'border-slate-200 bg-slate-50':'border-violet-200 bg-violet-50/60'} p-3">
       <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div class="shrink-0 rounded-lg bg-blue-100 px-3 py-2 text-center text-xs font-bold text-blue-700">${esc(movementMonthLabel(p.plan_year,p.effective_month))}</div>
+        <div class="shrink-0 rounded-lg ${isSource?'bg-blue-100 text-blue-700':'bg-violet-100 text-violet-700'} px-3 py-2 text-center text-xs font-bold">${esc(movementMonthLabel(p.plan_year,p.effective_month))}</div>
         <div class="min-w-0 flex-1">
-          <div class="font-bold text-slate-800">${esc(p.employee_code||'-')} · ${esc(p.employee_name||'-')}</div>
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="font-bold text-slate-800">${esc(p.employee_code||'-')} · ${esc(p.employee_name||'-')}</div>
+            ${directionBadge}
+          </div>
           <div class="mt-1 text-xs text-slate-600">${esc(p.from_level||'-')} / ${esc(p.from_position||'-')} → <b>${esc(p.to_level||'-')} / ${esc(p.to_position||'-')}</b></div>
-          <div class="mt-1 text-xs text-blue-700">ปลายทาง: ${esc(toName)}</div>
+          <div class="mt-1 grid gap-1 text-xs sm:grid-cols-2">
+            <div class="text-slate-600">ต้นทาง: <b>${esc(fromName)}</b></div>
+            <div class="text-blue-700">ปลายทาง: <b>${esc(toName)}</b></div>
+          </div>
           ${p.reason?`<div class="mt-1 text-xs text-slate-500">เหตุผล: ${esc(p.reason)}</div>`:''}
         </div>
-        ${canEditMovementYear(year)
+        ${isSource&&canEditMovementYear(year)
           ? `<button type="button" onclick="cancelMovement('${esc(p.id)}')" class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-100">ลบรายการ</button>`
-          : '<span class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-400">ล็อกแล้ว</span>'}
+          : isSource
+            ? '<span class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-400">ล็อกแล้ว</span>'
+            : '<span class="rounded-lg border border-violet-200 bg-white px-3 py-2 text-xs font-semibold text-violet-600">แก้ไขที่ต้นทาง</span>'}
       </div>
     </div>`;
   }).join('');
 }
 
 async function refreshMovementPlans(){
-  const {data,error}=await dbClient.from('movement_plans')
-    .select('*, to_ulhana:org_units!movement_plans_to_ulhana_id_fkey(ulhana_key,ulhana_name)')
-    .eq('from_ulhana_id',state.currentUlId)
-    .eq('status','active')
-    .order('plan_year')
-    .order('effective_month')
-    .order('created_at',{ascending:false});
-  if(error)throw error;
-  state.movePlans=data||[];
+  state.movePlans=await fetchMovementPlansForOrg(state.currentUlId);
 }
 
 async function saveMovement(){
@@ -5162,6 +5216,7 @@ async function saveMovement(){
 async function cancelMovement(id){
   const plan=(state.movePlans||[]).find(p=>p.id===id);
   const year=Number(plan?.plan_year||selectedMovementYear());
+  if(!isMovementSourceForCurrentOrg(plan))return toast('รายการนี้เป็นข้อมูลของ ULPromote ปลายทาง กรุณาแก้ไขหรือลบจาก ULHANA ต้นทาง','warning');
   if(!canEditMovementYear(year))return toast(yearLockMessage(year)||'ข้อมูลปีนี้ถูกล็อกตาม Workflow','error');
   const accepted=await showConfirmModal({
     title:'ลบรายการปรับตำแหน่ง',
@@ -7021,8 +7076,25 @@ async function loadMasterKpis(){
 }
 
 async function loadFiles(){
-  if(!state.orgUnits.length)return;const ulId=$('fileUlhanaSelect').value||state.currentUlId;const {data,error}=await dbClient.from('attachments').select('*').eq('ulhana_id',ulId).order('created_at',{ascending:false});if(error)return toast(errorText(error),'error');
-  $('fileList').innerHTML=(data||[]).map(f=>{const {data:urlData}=dbClient.storage.from(f.bucket_id).getPublicUrl(f.object_path);return `<div class="card p-4"><div class="flex items-start gap-3"><div class="rounded-xl bg-blue-50 p-2 text-blue-600"><i data-lucide="file" class="h-5 w-5"></i></div><div class="min-w-0 flex-1"><div class="truncate font-bold">${esc(f.original_name)}</div><div class="text-xs text-slate-500">${new Date(f.created_at).toLocaleString('th-TH')}</div><a class="mt-2 inline-block text-sm font-semibold text-blue-600" target="_blank" href="${urlData.publicUrl}">เปิดไฟล์</a></div></div></div>`}).join('')||'<div class="card col-span-full p-10 text-center text-slate-500">ยังไม่มีไฟล์แนบ</div>';refreshIcons();
+  if(!state.orgUnits.length)return;
+  const ulId=$('fileUlhanaSelect').value||state.currentUlId;
+  const {data,error}=await dbClient.from('attachments').select('*').eq('ulhana_id',ulId).order('created_at',{ascending:false});
+  if(error)return toast(errorText(error),'error');
+
+  const cards=await Promise.all((data||[]).map(async f=>{
+    const {data:urlData,error:urlError}=await dbClient.storage
+      .from(f.bucket_id)
+      .createSignedUrl(f.object_path,300);
+
+    const openLink=urlError||!urlData?.signedUrl
+      ? '<span class="mt-2 inline-block text-sm font-semibold text-red-600">ไม่สามารถสร้างลิงก์เปิดไฟล์ได้</span>'
+      : `<a class="mt-2 inline-block text-sm font-semibold text-blue-600" target="_blank" rel="noopener noreferrer" href="${esc(urlData.signedUrl)}">เปิดไฟล์</a>`;
+
+    return `<div class="card p-4"><div class="flex items-start gap-3"><div class="rounded-xl bg-blue-50 p-2 text-blue-600"><i data-lucide="file" class="h-5 w-5"></i></div><div class="min-w-0 flex-1"><div class="truncate font-bold">${esc(f.original_name)}</div><div class="text-xs text-slate-500">${new Date(f.created_at).toLocaleString('th-TH')}</div>${openLink}</div></div></div>`;
+  }));
+
+  $('fileList').innerHTML=cards.join('')||'<div class="card col-span-full p-10 text-center text-slate-500">ยังไม่มีไฟล์แนบ</div>';
+  refreshIcons();
 }
 async function uploadFile(){
   if(!state.session)return toast('กรุณา Login ก่อนอัปโหลดไฟล์','error');const file=$('fileInput').files[0];if(!file)return toast('กรุณาเลือกไฟล์','error');const ulId=$('fileUlhanaSelect').value,o=state.orgUnits.find(x=>x.id===ulId);const safe=file.name.replace(/[^a-zA-Z0-9._ก-๙-]/g,'_');const path=`${state.session.user.id}/${o?.ulhana_key||ulId}/${Date.now()}_${safe}`;
