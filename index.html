@@ -1497,6 +1497,7 @@ const PROMOTION_RULES = [
   {code:'PC3A_TO_PC2',label:'ผู้จัดการฝ่าย (PC3) → ผู้จัดการทั่วไป (PC2)',grade:'3A',fromLevel:'ฝ่าย',toLevel:'GM',toPosition:'ผู้จัดการทั่วไป'},
   {code:'PC2A_TO_SGM',label:'ผู้จัดการทั่วไป (GM) → ผู้จัดการทั่วไปอาวุโส (SGM)',grade:'2A',fromLevel:'GM',toLevel:'GM',toPosition:'ผู้จัดการทั่วไปอาวุโส (SGM)'}
 ];
+const PC5_TO_PC4_POSITION_OPTIONS = ['ผู้จัดการแผนก','เจ้าหน้าที่อาวุโส','ช่างเทคนิคอาวุโส'];
 
 const ALL_ULHANA_VALUE='__ALL__';
 const ALL_GROUP_VALUE='__ALL_GROUPS__';
@@ -3176,7 +3177,7 @@ function currentPlanningScope(){
 async function fetchAllMovementPlanRows(orgIds,planYear){
   const rowMap=new Map();
   const ids=[...new Set((orgIds||[]).filter(Boolean))];
-  const selectColumns='id,plan_year,effective_month,employee_code,employee_name,from_level,to_level,from_position,to_position,qty,from_ulhana_id,to_ulhana_id,status';
+  const selectColumns='id,plan_year,effective_month,employee_code,employee_name,from_level,to_level,from_position,to_position,promotion_position_name,qty,from_ulhana_id,to_ulhana_id,status';
 
   for(let chunkStart=0;chunkStart<ids.length;chunkStart+=100){
     const idChunk=ids.slice(chunkStart,chunkStart+100);
@@ -4829,6 +4830,27 @@ function selectedPromotionRule(){
   const code=$('promotionRule')?.value || '';
   return PROMOTION_RULES.find(r=>r.code===code) || null;
 }
+function isPc5ToPc4Rule(rule=selectedPromotionRule()){
+  return rule?.code==='PC5A_TO_PC4';
+}
+function selectedMovementPosition(rule=selectedPromotionRule()){
+  if(!rule)return '';
+  if(isPc5ToPc4Rule(rule))return $('moveToPositionSelect')?.value || rule.toPosition;
+  return rule.toPosition || '';
+}
+function useSourceUlhanaForMovement(rule=selectedPromotionRule(),position=selectedMovementPosition(rule)){
+  return isPc5ToPc4Rule(rule) && position==='ช่างเทคนิคอาวุโส';
+}
+function movementDestinationOrg(employee,rule=selectedPromotionRule(),position=selectedMovementPosition(rule)){
+  if(!employee)return null;
+  if(useSourceUlhanaForMovement(rule,position))return currentOrg();
+  return employee.ul_promote || currentOrg();
+}
+function movementDestinationUlhanaId(employee,rule=selectedPromotionRule(),position=selectedMovementPosition(rule)){
+  if(!employee)return null;
+  if(useSourceUlhanaForMovement(rule,position))return employee.ulhana_id;
+  return employee.ul_promote_id || employee.ulhana_id;
+}
 function movementMonthLabel(year,month){
   return `${MONTHS[Number(month)-1] || month} ${year}`;
 }
@@ -4931,6 +4953,15 @@ async function openMovementModal(initialYear=preferredMovementYear()){
         </label>
       </div>
 
+      <div id="movePositionFieldWrap" class="mt-3 hidden rounded-xl border border-emerald-200 bg-emerald-50/60 p-3">
+        <label class="block text-sm font-semibold text-emerald-900">ชื่อตำแหน่ง <span class="text-red-600">*</span>
+          <select id="moveToPositionSelect" class="mt-1 h-11 w-full rounded-xl border border-emerald-300 bg-white px-3 font-semibold text-slate-800">
+            ${PC5_TO_PC4_POSITION_OPTIONS.map(position=>`<option value="${esc(position)}">${esc(position)}</option>`).join('')}
+          </select>
+        </label>
+        <div id="movePositionRuleNote" class="mt-1 text-xs font-semibold text-emerald-800"></div>
+      </div>
+
       <label class="mt-3 block text-sm font-semibold">พนักงานที่ต้องการปรับตำแหน่ง
         <select id="moveEmployee" class="mt-1 h-11 w-full rounded-xl border border-slate-300 px-3"></select>
       </label>
@@ -4944,7 +4975,7 @@ async function openMovementModal(initialYear=preferredMovementYear()){
         <label class="text-sm font-semibold">ULHANA ต้นทาง
           <input id="moveFromUlDisplay" disabled value="-" class="mt-1 h-11 w-full rounded-xl border border-slate-300 bg-slate-100 px-3" />
         </label>
-        <label class="text-sm font-semibold">ULPromote (ปลายทาง)
+        <label class="text-sm font-semibold"><span id="moveDestinationLabel">ULPromote (ปลายทาง)</span>
           <input id="moveUlPromoteDisplay" disabled value="-" class="mt-1 h-11 w-full rounded-xl border border-blue-200 bg-blue-50 px-3 font-semibold text-blue-800" />
         </label>
         <label class="text-sm font-semibold">ระดับใหม่
@@ -4984,6 +5015,7 @@ async function openMovementModal(initialYear=preferredMovementYear()){
 
     $('moveYear').onchange=()=>renderMovementYear();
     $('promotionRule').onchange=()=>applyMovementRule();
+    $('moveToPositionSelect').onchange=()=>renderMovePreview();
     $('moveEmployee').onchange=()=>renderMovePreview();
     $('saveMoveBtn').onclick=saveMovement;
     renderMovementYear();
@@ -5016,7 +5048,7 @@ function renderMovementYear(){
     notice.className=`mb-4 ${message?'':'hidden'} rounded-xl border p-3 text-sm font-semibold ${year===2027&&workflowStage()==='draft_2026'?'border-amber-200 bg-amber-50 text-amber-800':'border-slate-200 bg-slate-50 text-slate-700'}`;
   }
 
-  ['promotionRule','moveEmployee','moveReason'].forEach(id=>{
+  ['promotionRule','moveToPositionSelect','moveEmployee','moveReason'].forEach(id=>{
     const el=$(id);
     if(el){
       el.disabled=!editable;
@@ -5048,6 +5080,14 @@ function renderMoveMonths(){
 function applyMovementRule(){
   const year=selectedMovementYear();
   const rule=selectedPromotionRule();
+  const isPc5Rule=isPc5ToPc4Rule(rule);
+  const positionWrap=$('movePositionFieldWrap');
+  if(positionWrap)positionWrap.classList.toggle('hidden',!isPc5Rule);
+  if($('movePositionRuleNote')){
+    $('movePositionRuleNote').textContent=isPc5Rule
+      ? 'ผู้จัดการแผนก / เจ้าหน้าที่อาวุโส: ใช้ ULPromote ตามเดิมเมื่อมีค่า · ช่างเทคนิคอาวุโส: ใช้ ULHANA ต้นทางเป็นปลายทางและไม่ใช้ ULPromote'
+      : '';
+  }
   const usedPlans=(state.movePlans||[]).filter(p=>p.status==='active'&&p.employee_id);
   const usedIds=new Set(usedPlans.map(p=>p.employee_id));
   const employees=(state.moveEmployees||[]).filter(e=>
@@ -5069,29 +5109,34 @@ function applyMovementRule(){
 function renderMovePreview(){
   const e=(state.moveEmployees||[]).find(x=>x.id===$('moveEmployee')?.value);
   const rule=selectedPromotionRule();
+  const position=selectedMovementPosition(rule);
   const o=currentOrg();
   const fromSummary=e?`${e.level||rule?.fromLevel||'-'} / ${e.position_name||'-'}`:'-';
   const fromUl=e?`${o.ulhana_key||'-'} · ${o.ulhana_name||'-'}`:'-';
-  const toOrg=e?(e.ul_promote||o):null;
+  const forceSource=useSourceUlhanaForMovement(rule,position);
+  const toOrg=e?movementDestinationOrg(e,rule,position):null;
   const toUl=toOrg?`${toOrg.ulhana_key||'-'} · ${toOrg.ulhana_name||'-'}`:'-';
   if($('moveFromSummary'))$('moveFromSummary').value=fromSummary;
   if($('moveFromUlDisplay'))$('moveFromUlDisplay').value=fromUl;
   if($('moveUlPromoteDisplay'))$('moveUlPromoteDisplay').value=toUl;
+  if($('moveDestinationLabel'))$('moveDestinationLabel').textContent=forceSource?'ULHANA ต้นทาง (ใช้เป็นปลายทาง)':'ULPromote (ปลายทาง)';
   if($('moveToLevelDisplay'))$('moveToLevelDisplay').value=e&&rule?rule.toLevel:'-';
-  if($('moveToPositionDisplay'))$('moveToPositionDisplay').value=e&&rule?rule.toPosition:'-';
+  if($('moveToPositionDisplay'))$('moveToPositionDisplay').value=e&&rule?position:'-';
   if(!e||!rule){
     $('movePreview').innerHTML='กรุณาเลือกพนักงาน';
     return;
   }
-  const fallback=!e.ul_promote_id
-    ? '<div class="mt-2 text-xs font-semibold text-amber-700">พนักงานไม่มี ULPromote ระบบจะใช้ ULHANA ต้นทางเป็นปลายทาง</div>'
-    : '';
+  const destinationNote=forceSource
+    ? '<div class="mt-2 text-xs font-semibold text-emerald-700">เลือกช่างเทคนิคอาวุโส: ระบบใช้ ULHANA ต้นทางเป็นปลายทาง และไม่ใช้ ULPromote ของพนักงาน</div>'
+    : !e.ul_promote_id
+      ? '<div class="mt-2 text-xs font-semibold text-amber-700">พนักงานไม่มี ULPromote ระบบจะใช้ ULHANA ต้นทางเป็นปลายทาง</div>'
+      : '';
   $('movePreview').innerHTML=`
     <div class="grid gap-2 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
       <div><div class="text-xs text-slate-500">ก่อนปรับ</div><b>${esc(fromSummary)}</b><div class="text-xs">${esc(fromUl)}</div></div>
       <div class="text-center text-xl font-black text-blue-600">→</div>
-      <div><div class="text-xs text-slate-500">หลังปรับ</div><b>${esc(rule.toLevel)} / ${esc(rule.toPosition)}</b><div class="text-xs">${esc(toUl)}</div></div>
-    </div>${fallback}`;
+      <div><div class="text-xs text-slate-500">หลังปรับ</div><b>${esc(rule.toLevel)} / ${esc(position)}</b><div class="text-xs">${esc(toUl)}</div></div>
+    </div>${destinationNote}`;
 }
 
 function renderMovementList(){
@@ -5148,7 +5193,9 @@ async function saveMovement(){
   if(!canEditMovementYear(year))return toast(yearLockMessage(year)||'ข้อมูลปีนี้ถูกล็อกตาม Workflow','error');
   const month=Number($('moveMonth')?.value);
   const rule=selectedPromotionRule();
+  const position=selectedMovementPosition(rule);
   if(!e||!rule)return toast('กรุณาเลือกพนักงานที่มีเงื่อนไข Promote','error');
+  if(isPc5ToPc4Rule(rule)&&!PC5_TO_PC4_POSITION_OPTIONS.includes(position))return toast('กรุณาเลือกชื่อตำแหน่ง','error');
   if((year===2026&&month!==10)||(year===2027&&![4,10].includes(month)))return toast('เดือนที่มีผลไม่ตรงตามรอบที่กำหนด','error');
   const duplicatedPlan=(state.movePlans||[]).find(p=>p.employee_id===e.id&&p.status==='active');
   if(duplicatedPlan)return toast(`พนักงานคนนี้มีรายการปรับตำแหน่งปี ${duplicatedPlan.plan_year} แล้ว ไม่สามารถบันทึกซ้ำในปี ${year} ได้`,'error');
@@ -5162,9 +5209,10 @@ async function saveMovement(){
     from_ulhana_id:e.ulhana_id,
     from_level:e.level||rule.fromLevel,
     from_position:e.position_name,
-    to_ulhana_id:e.ul_promote_id||e.ulhana_id,
+    to_ulhana_id:movementDestinationUlhanaId(e,rule,position),
     to_level:rule.toLevel,
-    to_position:rule.toPosition,
+    to_position:position,
+    promotion_position_name:isPc5ToPc4Rule(rule)?position:null,
     qty:1,
     reason:$('moveReason').value.trim(),
     status:'active',
