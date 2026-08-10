@@ -5647,21 +5647,29 @@ function summaryExportMetricForOrgs(orgs,summaryByOrg,groupKey){
   },0);
 }
 
-function summaryExportValues(orgs,summaryByOrg){
-  // Mapping Sheet Summary:
+function summaryExportHireForOrgs(orgs,hireByOrg){
+  return (orgs||[]).reduce((sum,org)=>{
+    return sum+exportHire2027Value(hireByOrg,org.id,'Total');
+  },0);
+}
+
+function summaryExportValues(orgs,summaryByOrg,hireByOrg){
+  // Mapping Sheet Summary ตามโครงสร้างรายงานที่ผู้ใช้ยืนยัน:
   // C · BG2026 = ACT26 + RQ26 รอเริ่มงาน + RQ26 ระหว่างสรรหา
   // D · ACT26   = ACT26 + RQ26 รอเริ่มงาน
   // F · Vacant  = RQ26 ระหว่างสรรหา
-  // J · BG2027  = ดึงค่า BG27 จริงจาก v_workforce_level_summary
-  // H · เพิ่ม/ลด = BG2027 - BG2026
+  // H · Total เพิ่ม/ลด อัตรา = "รับคนเพิ่ม ปี 2027" จาก hire_plans โดยตรง
+  // J · BG2027 H/C = BG2026 + รับคนเพิ่ม ปี 2027
+  // หมายเหตุ: Sheet Summary สรุปยอดรับเพิ่มตาม Sub จึงไม่ใช้ผลสุทธิ Movement มาปะปนใน H
   const act26Current=summaryExportMetricForOrgs(orgs,summaryByOrg,'act26');
   const rq26Waiting=summaryExportMetricForOrgs(orgs,summaryByOrg,'rq26_waiting');
   const rq26OnProcess=summaryExportMetricForOrgs(orgs,summaryByOrg,'rq26_on_process');
   const bg26=act26Current+rq26Waiting+rq26OnProcess;
   const act26=act26Current+rq26Waiting;
   const vacant=rq26OnProcess;
-  const bg27=summaryExportMetricForOrgs(orgs,summaryByOrg,'bg27');
-  const bg27Change=bg27-bg26;
+  const hire27=summaryExportHireForOrgs(orgs,hireByOrg);
+  const bg27Change=hire27;
+  const bg27=bg26+hire27;
   const safePct=value=>bg26?value/bg26:0;
   return {
     bg26,
@@ -5669,6 +5677,7 @@ function summaryExportValues(orgs,summaryByOrg){
     actPct:safePct(act26),
     vacant,
     vacantPct:safePct(vacant),
+    hire27,
     bg27Change,
     bg27ChangePct:safePct(bg27Change),
     bg27,
@@ -5680,18 +5689,19 @@ function summaryExportGroups(orgs){
   const grouped=new Map();
   (orgs||[]).forEach(org=>{
     const bu=String(org.bu||'ไม่ระบุ BU').trim()||'ไม่ระบุ BU';
-    const subset=String(org.sub_set||org.sub||org.function_name||org.ulhana_name||org.ulhana_key||'ไม่ระบุ Sub set').trim()||'ไม่ระบุ Sub set';
+    // Summary ต้องสรุปตามคอลัมน์ Sub โดยตรง ไม่ใช้ Sub Set เป็นตัวตั้ง
+    const sub=String(org.sub||org.sub_set||org.function_name||org.ulhana_name||org.ulhana_key||'ไม่ระบุ Sub').trim()||'ไม่ระบุ Sub';
     if(!grouped.has(bu))grouped.set(bu,new Map());
-    const subsetMap=grouped.get(bu);
-    if(!subsetMap.has(subset))subsetMap.set(subset,[]);
-    subsetMap.get(subset).push(org);
+    const subMap=grouped.get(bu);
+    if(!subMap.has(sub))subMap.set(sub,[]);
+    subMap.get(sub).push(org);
   });
 
   return [...grouped.entries()]
     .sort(([a],[b])=>compareOrgText(a,b))
-    .map(([bu,subsetMap])=>({
+    .map(([bu,subMap])=>({
       bu,
-      subsets:[...subsetMap.entries()]
+      subsets:[...subMap.entries()]
         .sort(([a],[b])=>compareOrgText(a,b))
         .map(([label,items])=>({label,orgs:items}))
     }));
@@ -5706,7 +5716,7 @@ function applySummaryCellBorder(cell,color='FF1F2937'){
   };
 }
 
-function buildExcelSummarySheet(workbook,orgs,summaryByOrg,scopeLabel){
+function buildExcelSummarySheet(workbook,orgs,summaryByOrg,hireByOrg,scopeLabel){
   const worksheet=workbook.addWorksheet('Summary',{
     properties:{tabColor:{argb:'FF1269DF'}},
     views:[{
@@ -5837,8 +5847,8 @@ function buildExcelSummarySheet(workbook,orgs,summaryByOrg,scopeLabel){
     worksheet.getCell(rowNumber,2).value=label;
 
     if(formulaRows.length){
-      // รวมเฉพาะแถวที่ส่งเข้ามาเท่านั้น เพื่อป้องกัน Total แถวล่างสุด
-      // ใช้ BG2027 จริงจากคอลัมน์ J ของแถวย่อย แล้วคำนวณเพิ่ม/ลดจาก J - C
+      // Total BU / Total CPRetailink รวมจากแถว Sub เท่านั้น
+      // H คือยอดรับคนเพิ่มปี 2027 โดยตรง และ J = C + H
       const summed=(column,result)=>{
         const references=formulaRows.map(row=>`${column}${row}`);
         const formula=references.length===1
@@ -5849,18 +5859,18 @@ function buildExcelSummarySheet(workbook,orgs,summaryByOrg,scopeLabel){
       worksheet.getCell(rowNumber,3).value=summed('C',values.bg26);
       worksheet.getCell(rowNumber,4).value=summed('D',values.act26);
       worksheet.getCell(rowNumber,6).value=summed('F',values.vacant);
-      worksheet.getCell(rowNumber,10).value=summed('J',values.bg27);
+      worksheet.getCell(rowNumber,8).value=summed('H',values.bg27Change);
     }else{
       worksheet.getCell(rowNumber,3).value=values.bg26;
       worksheet.getCell(rowNumber,4).value=values.act26;
       worksheet.getCell(rowNumber,6).value=values.vacant;
-      worksheet.getCell(rowNumber,10).value=values.bg27;
+      worksheet.getCell(rowNumber,8).value=values.bg27Change;
     }
 
     worksheet.getCell(rowNumber,5).value={formula:`IFERROR(D${rowNumber}/C${rowNumber},0)`,result:values.actPct};
     worksheet.getCell(rowNumber,7).value={formula:`IFERROR(F${rowNumber}/C${rowNumber},0)`,result:values.vacantPct};
-    worksheet.getCell(rowNumber,8).value={formula:`J${rowNumber}-C${rowNumber}`,result:values.bg27Change};
     worksheet.getCell(rowNumber,9).value={formula:`IFERROR(H${rowNumber}/C${rowNumber},0)`,result:values.bg27ChangePct};
+    worksheet.getCell(rowNumber,10).value={formula:`C${rowNumber}+H${rowNumber}`,result:values.bg27};
     worksheet.getCell(rowNumber,11).value={formula:`IFERROR(H${rowNumber}/C${rowNumber},0)`,result:values.bg27Pct};
 
     [3,4,6,8,10].forEach(column=>worksheet.getCell(rowNumber,column).numFmt='#,##0;[Red]-#,##0;-');
@@ -5870,20 +5880,20 @@ function buildExcelSummarySheet(workbook,orgs,summaryByOrg,scopeLabel){
   groups.forEach((group,groupIndex)=>{
     const subsetRows=[];
     group.subsets.forEach((subset,subsetIndex)=>{
-      const values=summaryExportValues(subset.orgs,summaryByOrg);
+      const values=summaryExportValues(subset.orgs,summaryByOrg,hireByOrg);
       setMetricRow(currentRow,values,subset.label,subsetIndex===0?groupIndex+1:'');
       subsetRows.push(currentRow);
       currentRow++;
     });
 
     const groupOrgs=group.subsets.flatMap(item=>item.orgs);
-    const totalValues=summaryExportValues(groupOrgs,summaryByOrg);
+    const totalValues=summaryExportValues(groupOrgs,summaryByOrg,hireByOrg);
     setMetricRow(currentRow,totalValues,`Total ${group.bu}`,'',{total:true,formulaRows:subsetRows});
     buTotalRows.push(currentRow);
     currentRow++;
   });
 
-  const grandValues=summaryExportValues(orgs,summaryByOrg);
+  const grandValues=summaryExportValues(orgs,summaryByOrg,hireByOrg);
   const grandRow=currentRow;
   worksheet.mergeCells(grandRow,1,grandRow,2);
   setMetricRow(grandRow,grandValues,'Total CPRetailink','',{total:true,grand:true,formulaRows:buTotalRows});
@@ -6490,7 +6500,7 @@ async function runExcelExport(){
       ? `ULHANA ${current.ulhana_key||''} · ${current.ulhana_name||current.ulhana_key||''}`
       : `ทุก ULHANA ที่มีสิทธิ์ (${orgs.length} ULHANA)`;
 
-    buildExcelSummarySheet(workbook,orgs,summaryByOrg,scopeLabel);
+    buildExcelSummarySheet(workbook,orgs,summaryByOrg,hireByOrg,scopeLabel);
     buildExcelReportSheet(workbook,'Group BU',orgs,summaryByOrg,hireByOrg,'BU',scopeLabel,includeHireReason);
     buildExcelReportSheet(workbook,'Group สำนัก',orgs,summaryByOrg,hireByOrg,'OFFICE',scopeLabel,includeHireReason);
 
