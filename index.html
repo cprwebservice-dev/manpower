@@ -1021,6 +1021,93 @@
       text-shadow: none !important;
     }
 
+
+    /* ============================================================
+       DARK MODE · FILTER / DROPDOWN HOVER CONTRAST
+       ปรับเฉพาะสถานะ hover / selected ของตัวกรอง เพื่อให้ข้อความอ่านชัด
+       โดยไม่กระทบ Light Mode และ logic การกรองเดิม
+    ============================================================ */
+    html[data-theme="dark"] .searchable-select-panel [data-option-value] {
+      background-color: transparent !important;
+      color: #e7eef8 !important;
+      border: 1px solid transparent;
+    }
+    html[data-theme="dark"] .searchable-select-panel [data-option-value]:hover,
+    html[data-theme="dark"] .searchable-select-panel [data-option-value]:focus-visible {
+      background-color: #294a70 !important;
+      color: #ffffff !important;
+      border-color: #4f79a8 !important;
+      outline: none !important;
+    }
+    html[data-theme="dark"] .searchable-select-panel [data-option-value][data-option-active="1"] {
+      background-color: #1f4f85 !important;
+      color: #ffffff !important;
+      border-color: #3f75ad !important;
+    }
+    html[data-theme="dark"] .searchable-select-panel [data-option-value][data-option-active="1"]:hover,
+    html[data-theme="dark"] .searchable-select-panel [data-option-value][data-option-active="1"]:focus-visible {
+      background-color: #2b639f !important;
+      color: #ffffff !important;
+      border-color: #6aa0d6 !important;
+    }
+    html[data-theme="dark"] .searchable-select-panel [data-option-value] svg {
+      color: #b8c8dc !important;
+    }
+    html[data-theme="dark"] .searchable-select-panel [data-option-value][data-option-active="1"] svg,
+    html[data-theme="dark"] .searchable-select-panel [data-option-value]:hover svg,
+    html[data-theme="dark"] .searchable-select-panel [data-option-value]:focus-visible svg {
+      color: #8fc5ff !important;
+    }
+    html[data-theme="dark"] .searchable-select-panel .sticky.bottom-0 {
+      background-color: rgba(19,35,58,.98) !important;
+      border-color: #405572 !important;
+      color: #dce6f4 !important;
+    }
+    html[data-theme="dark"] #orgGroupFilterToggle:hover,
+    html[data-theme="dark"] #ulhanaSelectToggle:hover,
+    html[data-theme="dark"] #orgGroupFilterToggle:focus-visible,
+    html[data-theme="dark"] #ulhanaSelectToggle:focus-visible {
+      background-color: #263d5c !important;
+      color: #9dcbff !important;
+      outline: none !important;
+    }
+    html[data-theme="dark"] #orgGroupFilterSearch:hover,
+    html[data-theme="dark"] #ulhanaSelectSearch:hover {
+      border-color: #58789f !important;
+    }
+
+    /* Native select filters: Status, Role, Employee level, Movement/Hire forms, etc. */
+    html[data-theme="dark"] select {
+      background-color: #13233a !important;
+      border-color: #4b6382 !important;
+      color: #f8fafc !important;
+    }
+    html[data-theme="dark"] select:hover {
+      background-color: #182b45 !important;
+      border-color: #6688b0 !important;
+      color: #ffffff !important;
+    }
+    html[data-theme="dark"] select:focus,
+    html[data-theme="dark"] select:focus-visible {
+      background-color: #172a43 !important;
+      border-color: #60a5fa !important;
+      color: #ffffff !important;
+      box-shadow: 0 0 0 4px rgba(59,130,246,.20) !important;
+      outline: none !important;
+    }
+    html[data-theme="dark"] select option {
+      background-color: #13233a !important;
+      color: #eef4fb !important;
+    }
+    html[data-theme="dark"] select option:checked {
+      background-color: #245989 !important;
+      color: #ffffff !important;
+    }
+    html[data-theme="dark"] select option:hover {
+      background-color: #2b527c !important;
+      color: #ffffff !important;
+    }
+
   </style>
 </head>
 <body class="min-h-screen">
@@ -2068,7 +2155,7 @@ function renderSearchableOptions(selectId){
       ? (option.value===ALL_GROUP_VALUE?isAllPlanningGroups():selectedGroups.has(option.value))
       : option.value===select.value;
     const icon=isGroupMulti?(active?'square-check-big':'square'):(active?'check-circle-2':'circle');
-    return `<button type="button" data-option-value="${esc(option.value)}" class="flex w-full items-start gap-2 rounded-xl px-3 py-2 text-left text-sm transition ${active?'bg-blue-50 text-blue-800':'text-slate-700 hover:bg-slate-50'}">
+    return `<button type="button" data-option-value="${esc(option.value)}" data-option-active="${active?'1':'0'}" class="flex w-full items-start gap-2 rounded-xl px-3 py-2 text-left text-sm transition ${active?'bg-blue-50 text-blue-800':'text-slate-700 hover:bg-slate-50'}">
       <i data-lucide="${icon}" class="mt-0.5 h-4 w-4 shrink-0 ${active?'text-blue-600':'text-slate-300'}"></i>
       <span class="min-w-0 flex-1">${esc(option.textContent||'')}</span>
     </button>`;
