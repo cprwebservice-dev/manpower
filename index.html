@@ -5648,19 +5648,20 @@ function summaryExportMetricForOrgs(orgs,summaryByOrg,groupKey){
 }
 
 function summaryExportValues(orgs,summaryByOrg){
-  // Mapping ตามไฟล์ Summary_Export_Excel ล่าสุด:
+  // Mapping Sheet Summary:
   // C · BG2026 = ACT26 + RQ26 รอเริ่มงาน + RQ26 ระหว่างสรรหา
   // D · ACT26   = ACT26 + RQ26 รอเริ่มงาน
   // F · Vacant  = RQ26 ระหว่างสรรหา
-  // H · เพิ่ม/ลด = OL26 vs BG27 (BG27 - OL26)
+  // J · BG2027  = ดึงค่า BG27 จริงจาก v_workforce_level_summary
+  // H · เพิ่ม/ลด = BG2027 - BG2026
   const act26Current=summaryExportMetricForOrgs(orgs,summaryByOrg,'act26');
   const rq26Waiting=summaryExportMetricForOrgs(orgs,summaryByOrg,'rq26_waiting');
   const rq26OnProcess=summaryExportMetricForOrgs(orgs,summaryByOrg,'rq26_on_process');
   const bg26=act26Current+rq26Waiting+rq26OnProcess;
   const act26=act26Current+rq26Waiting;
   const vacant=rq26OnProcess;
-  const bg27Change=summaryExportMetricForOrgs(orgs,summaryByOrg,'bg27_vs_ol26');
-  const bg27=bg26+bg27Change;
+  const bg27=summaryExportMetricForOrgs(orgs,summaryByOrg,'bg27');
+  const bg27Change=bg27-bg26;
   const safePct=value=>bg26?value/bg26:0;
   return {
     bg26,
@@ -5837,7 +5838,7 @@ function buildExcelSummarySheet(workbook,orgs,summaryByOrg,scopeLabel){
 
     if(formulaRows.length){
       // รวมเฉพาะแถวที่ส่งเข้ามาเท่านั้น เพื่อป้องกัน Total แถวล่างสุด
-      // บวกซ้ำทั้งแถว Sub set และแถว Total BU ที่อยู่ระหว่างช่วงข้อมูล
+      // ใช้ BG2027 จริงจากคอลัมน์ J ของแถวย่อย แล้วคำนวณเพิ่ม/ลดจาก J - C
       const summed=(column,result)=>{
         const references=formulaRows.map(row=>`${column}${row}`);
         const formula=references.length===1
@@ -5848,18 +5849,18 @@ function buildExcelSummarySheet(workbook,orgs,summaryByOrg,scopeLabel){
       worksheet.getCell(rowNumber,3).value=summed('C',values.bg26);
       worksheet.getCell(rowNumber,4).value=summed('D',values.act26);
       worksheet.getCell(rowNumber,6).value=summed('F',values.vacant);
-      worksheet.getCell(rowNumber,8).value=summed('H',values.bg27Change);
+      worksheet.getCell(rowNumber,10).value=summed('J',values.bg27);
     }else{
       worksheet.getCell(rowNumber,3).value=values.bg26;
       worksheet.getCell(rowNumber,4).value=values.act26;
       worksheet.getCell(rowNumber,6).value=values.vacant;
-      worksheet.getCell(rowNumber,8).value=values.bg27Change;
+      worksheet.getCell(rowNumber,10).value=values.bg27;
     }
 
     worksheet.getCell(rowNumber,5).value={formula:`IFERROR(D${rowNumber}/C${rowNumber},0)`,result:values.actPct};
     worksheet.getCell(rowNumber,7).value={formula:`IFERROR(F${rowNumber}/C${rowNumber},0)`,result:values.vacantPct};
+    worksheet.getCell(rowNumber,8).value={formula:`J${rowNumber}-C${rowNumber}`,result:values.bg27Change};
     worksheet.getCell(rowNumber,9).value={formula:`IFERROR(H${rowNumber}/C${rowNumber},0)`,result:values.bg27ChangePct};
-    worksheet.getCell(rowNumber,10).value={formula:`C${rowNumber}+H${rowNumber}`,result:values.bg27};
     worksheet.getCell(rowNumber,11).value={formula:`IFERROR(H${rowNumber}/C${rowNumber},0)`,result:values.bg27Pct};
 
     [3,4,6,8,10].forEach(column=>worksheet.getCell(rowNumber,column).numFmt='#,##0;[Red]-#,##0;-');
