@@ -1220,7 +1220,7 @@ const dbClient = window.supabase.createClient(SB_URL, SB_PUBLISHABLE_KEY);</pre>
         <div class="card planning-filter-card p-4">
           <div class="grid gap-3 lg:grid-cols-[minmax(220px,300px)_minmax(260px,420px)_1fr_auto] lg:items-end">
             <label class="text-sm font-semibold text-slate-600">หน่วยงานระดับด้าน
-              <select id="orgGroupFilter" class="mt-1 h-11 w-full rounded-xl border border-slate-300 bg-white px-3 outline-none focus:border-blue-500"></select>
+              <select id="orgGroupFilter" multiple class="mt-1 h-11 w-full rounded-xl border border-slate-300 bg-white px-3 outline-none focus:border-blue-500"></select>
             </label>
             <label class="text-sm font-semibold text-slate-600">เลือก ULHANA
               <select id="ulhanaSelect" class="mt-1 h-11 w-full rounded-xl border border-slate-300 bg-white px-3 outline-none focus:border-blue-500"></select>
@@ -1505,7 +1505,7 @@ const ALL_GROUP_VALUE='__ALL_GROUPS__';
 const state = {
   session:null, profile:null, activeTab:'actions',
   orgUnits:[], dashboard:[], workflows:[], currentUlId:null,
-  selectedGroupName:ALL_GROUP_VALUE,
+  selectedGroupNames:[], groupFilterDirty:false,
   actionQuickFilter:'total',
   levelRows:[], positionRows:[], ulPromoteTables:[], chart:null,
   hirePositionPermissions:[], hirePositionRequestSummary:{pending:0,total:0},
@@ -1964,6 +1964,9 @@ function ensureSearchableSelect(selectId,placeholder='ค้นหา...'){
   const panel=$(`${selectId}Panel`);
 
   const open=()=>{
+    // ช่อง "หน่วยงานระดับด้าน" ใช้ input เดียวกันทั้งแสดงผลและค้นหา
+    // เมื่อเปิดรายการให้เคลียร์ข้อความสรุปชั่วคราว เพื่อค้นหา/เลือกหลายด้านได้ทันที
+    if(selectId==='orgGroupFilter')input.value='';
     renderSearchableOptions(selectId);
     document.querySelectorAll('.searchable-select').forEach(item=>item.classList.remove('is-open'));
     wrapper.classList.add('is-open');
@@ -1972,6 +1975,10 @@ function ensureSearchableSelect(selectId,placeholder='ค้นหา...'){
   const close=()=>{
     wrapper.classList.remove('is-open');
     panel.classList.add('hidden');
+    if(selectId==='orgGroupFilter'){
+      if(state.groupFilterDirty)applyPlanningGroupFilter();
+      else refreshSearchableSelect(selectId);
+    }
   };
 
   input.addEventListener('focus',open);
@@ -1990,9 +1997,10 @@ function ensureSearchableSelect(selectId,placeholder='ค้นหา...'){
     event.preventDefault();
     event.stopPropagation();
     if(selectId==='orgGroupFilter'){
-      select.value=ALL_GROUP_VALUE;
-      refreshSearchableSelect('orgGroupFilter');
       changePlanningGroupFilter(ALL_GROUP_VALUE);
+      applyPlanningGroupFilter();
+      input.value='';
+      renderSearchableOptions(selectId);
     }else if(selectId==='ulhanaSelect'){
       state.currentUlId=ALL_ULHANA_VALUE;
       $('ulhanaSelect').value=ALL_ULHANA_VALUE;
@@ -2003,7 +2011,6 @@ function ensureSearchableSelect(selectId,placeholder='ค้นหา...'){
       refreshSearchableSelect(selectId);
       select.dispatchEvent(new Event('change',{bubbles:true}));
     }
-    renderSearchableOptions(selectId);
     document.querySelectorAll('.searchable-select').forEach(item=>item.classList.remove('is-open'));
     wrapper.classList.add('is-open');
     panel.classList.remove('hidden');
@@ -2012,10 +2019,11 @@ function ensureSearchableSelect(selectId,placeholder='ค้นหา...'){
 
   toggle.addEventListener('click',event=>{
     event.preventDefault();
-    panel.classList.toggle('hidden');
-    if(!panel.classList.contains('hidden')){
+    if(panel.classList.contains('hidden')){
+      open();
       input.focus();
-      renderSearchableOptions(selectId);
+    }else{
+      close();
     }
   });
 
@@ -2024,9 +2032,14 @@ function ensureSearchableSelect(selectId,placeholder='ค้นหา...'){
     document.addEventListener('click',event=>{
       document.querySelectorAll('.searchable-select').forEach(item=>{
         if(!item.contains(event.target)){
-          const targetPanel=$(`${item.dataset.selectId}Panel`);
+          const targetSelectId=item.dataset.selectId;
+          const targetPanel=$(`${targetSelectId}Panel`);
           item.classList.remove('is-open');
           if(targetPanel)targetPanel.classList.add('hidden');
+          if(targetSelectId==='orgGroupFilter'){
+            if(state.groupFilterDirty)applyPlanningGroupFilter();
+            else refreshSearchableSelect(targetSelectId);
+          }
         }
       });
     });
@@ -2041,29 +2054,63 @@ function renderSearchableOptions(selectId){
   const panel=$(`${selectId}Panel`);
   if(!select||!input||!panel)return;
 
+  const isGroupMulti=selectId==='orgGroupFilter';
   const query=input.value.trim().toLowerCase();
+  const selectedGroups=new Set(selectedPlanningGroupNames());
   const options=[...select.options].filter(option=>{
     const text=option.textContent||'';
     const value=option.value||'';
     return !query||text.toLowerCase().includes(query)||value.toLowerCase().includes(query);
   });
 
-  panel.innerHTML=options.length?options.map(option=>{
-    const active=option.value===select.value;
+  const optionHtml=options.length?options.map(option=>{
+    const active=isGroupMulti
+      ? (option.value===ALL_GROUP_VALUE?isAllPlanningGroups():selectedGroups.has(option.value))
+      : option.value===select.value;
+    const icon=isGroupMulti?(active?'square-check-big':'square'):(active?'check-circle-2':'circle');
     return `<button type="button" data-option-value="${esc(option.value)}" class="flex w-full items-start gap-2 rounded-xl px-3 py-2 text-left text-sm transition ${active?'bg-blue-50 text-blue-800':'text-slate-700 hover:bg-slate-50'}">
-      <i data-lucide="${active?'check-circle-2':'circle'}" class="mt-0.5 h-4 w-4 shrink-0 ${active?'text-blue-600':'text-slate-300'}"></i>
+      <i data-lucide="${icon}" class="mt-0.5 h-4 w-4 shrink-0 ${active?'text-blue-600':'text-slate-300'}"></i>
       <span class="min-w-0 flex-1">${esc(option.textContent||'')}</span>
     </button>`;
   }).join(''):`<div class="px-3 py-4 text-center text-sm text-slate-400">ไม่พบรายการที่ค้นหา</div>`;
 
+  if(isGroupMulti){
+    const count=selectedPlanningGroupNames().length;
+    panel.innerHTML=`${optionHtml}
+      <div class="sticky bottom-0 mt-1 flex items-center justify-between gap-2 border-t border-slate-200 bg-white/95 px-2 py-2 backdrop-blur-sm">
+        <span class="text-xs font-semibold text-slate-500">${count?`เลือกแล้ว ${fmt(count)} ด้าน`:'ดูทุกด้าน'}</span>
+        <button type="button" data-apply-group-filter class="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-bold text-white shadow-sm hover:bg-blue-700">ใช้ตัวกรอง</button>
+      </div>`;
+  }else{
+    panel.innerHTML=optionHtml;
+  }
+
   panel.querySelectorAll('[data-option-value]').forEach(button=>{
-    button.onclick=()=>{
-      select.value=button.dataset.optionValue||'';
-      input.value=select.selectedOptions[0]?.textContent||'';
-      updateSearchableClearButton(selectId);
-      panel.classList.add('hidden');
-      select.dispatchEvent(new Event('change',{bubbles:true}));
+    button.onclick=event=>{
+      event.preventDefault();
+      event.stopPropagation();
+      const value=button.dataset.optionValue||'';
+      if(isGroupMulti){
+        changePlanningGroupFilter(value);
+        renderSearchableOptions(selectId);
+        input.focus();
+      }else{
+        select.value=value;
+        input.value=select.selectedOptions[0]?.textContent||'';
+        updateSearchableClearButton(selectId);
+        panel.classList.add('hidden');
+        select.dispatchEvent(new Event('change',{bubbles:true}));
+      }
     };
+  });
+
+  panel.querySelector('[data-apply-group-filter]')?.addEventListener('click',event=>{
+    event.preventDefault();
+    event.stopPropagation();
+    applyPlanningGroupFilter();
+    panel.classList.add('hidden');
+    const wrapper=panel.closest('.searchable-select');
+    wrapper?.classList.remove('is-open');
   });
   refreshIcons();
 }
@@ -2073,7 +2120,13 @@ function refreshSearchableSelect(selectId){
   const input=$(`${selectId}Search`);
   if(!select||!input)return;
 
-  input.value=select.selectedOptions[0]?.textContent||'';
+  if(selectId==='orgGroupFilter'){
+    syncPlanningGroupSelect();
+    input.value=currentGroupLabel();
+    input.title=planningGroupFullLabel();
+  }else{
+    input.value=select.selectedOptions[0]?.textContent||'';
+  }
   renderSearchableOptions(selectId);
   updateSearchableClearButton(selectId);
 }
@@ -2082,8 +2135,35 @@ function getGroupName(org){
   return String(org?.group_name||'ไม่ระบุด้าน').trim()||'ไม่ระบุด้าน';
 }
 
+function selectedPlanningGroupNames(){
+  const values=Array.isArray(state.selectedGroupNames)?state.selectedGroupNames:[];
+  return [...new Set(values.map(value=>String(value||'').trim()).filter(value=>value&&value!==ALL_GROUP_VALUE))];
+}
+
+function isAllPlanningGroups(){
+  return selectedPlanningGroupNames().length===0;
+}
+
+function planningGroupFullLabel(){
+  const names=selectedPlanningGroupNames();
+  return names.length?names.join(', '):'ดูทั้งหมด';
+}
+
 function currentGroupLabel(){
-  return state.selectedGroupName===ALL_GROUP_VALUE?'ดูทั้งหมด':state.selectedGroupName;
+  const names=selectedPlanningGroupNames();
+  if(!names.length)return 'ดูทั้งหมด';
+  if(names.length<=2)return names.join(', ');
+  return `${names.slice(0,2).join(', ')} +${names.length-2}`;
+}
+
+function syncPlanningGroupSelect(){
+  const select=$('orgGroupFilter');
+  if(!select)return;
+  const names=new Set(selectedPlanningGroupNames());
+  const allSelected=names.size===0;
+  [...select.options].forEach(option=>{
+    option.selected=option.value===ALL_GROUP_VALUE?allSelected:names.has(option.value);
+  });
 }
 
 function defaultFilterValue(selectId){
@@ -2095,14 +2175,26 @@ function updateSearchableClearButton(selectId){
   const select=$(selectId);
   const clearBtn=$(`${selectId}Clear`);
   if(!select||!clearBtn)return;
+  if(selectId==='orgGroupFilter'){
+    clearBtn.classList.toggle('hidden',isAllPlanningGroups());
+    return;
+  }
   const defaultValue=defaultFilterValue(selectId);
   const shouldShow=Boolean(select.value) && select.value!==defaultValue;
   clearBtn.classList.toggle('hidden',!shouldShow);
 }
 
 function planningScopedOrgUnits(){
-  if(state.selectedGroupName===ALL_GROUP_VALUE)return [...state.orgUnits];
-  return state.orgUnits.filter(org=>getGroupName(org)===state.selectedGroupName);
+  const selected=new Set(selectedPlanningGroupNames());
+  if(!selected.size)return [...state.orgUnits];
+  return state.orgUnits.filter(org=>selected.has(getGroupName(org)));
+}
+
+function planningGroupScopeText(){
+  const names=selectedPlanningGroupNames();
+  if(!names.length)return 'ภาพรวมทั้งหมด';
+  if(names.length===1)return `ภาพรวมด้าน ${names[0]}`;
+  return `ภาพรวม ${fmt(names.length)} ด้าน`;
 }
 
 function updateUlhanaOptions(){
@@ -2111,9 +2203,7 @@ function updateUlhanaOptions(){
     .map(org=>`<option value="${org.id}">${esc(org.ulhana_key)} · ${esc(org.ulhana_name)}</option>`)
     .join('');
 
-  const scopeLabel=state.selectedGroupName===ALL_GROUP_VALUE
-    ? `ภาพรวมทั้งหมด · ${fmt(scopedOrgs.length)} ULHANA`
-    : `ภาพรวมด้าน ${esc(state.selectedGroupName)} · ${fmt(scopedOrgs.length)} ULHANA`;
+  const scopeLabel=`${esc(planningGroupScopeText())} · ${fmt(scopedOrgs.length)} ULHANA`;
 
   $('ulhanaSelect').innerHTML=`<option value="${ALL_ULHANA_VALUE}">${scopeLabel}</option>${options}`;
 
@@ -2141,11 +2231,15 @@ function populateSelectors(){
 
   const groupFilter=$('orgGroupFilter');
   if(groupFilter){
+    groupFilter.multiple=true;
     groupFilter.innerHTML=[
       `<option value="${ALL_GROUP_VALUE}">ดูทั้งหมด</option>`,
       ...groupNames.map(name=>`<option value="${esc(name)}">${esc(name)}</option>`)
     ].join('');
-    groupFilter.value=state.selectedGroupName;
+    // ตัดค่าด้านที่ไม่มีอยู่แล้วออก เช่น สิทธิ์ผู้ใช้ถูกเปลี่ยนระหว่าง session
+    const available=new Set(groupNames);
+    state.selectedGroupNames=selectedPlanningGroupNames().filter(name=>available.has(name));
+    syncPlanningGroupSelect();
     ensureSearchableSelect('orgGroupFilter','ค้นหาหน่วยงานระดับด้าน...');
     refreshSearchableSelect('orgGroupFilter');
   }
@@ -2154,9 +2248,27 @@ function populateSelectors(){
 }
 
 function changePlanningGroupFilter(value){
-  state.selectedGroupName=value||ALL_GROUP_VALUE;
+  const selected=new Set(selectedPlanningGroupNames());
+  if(!value||value===ALL_GROUP_VALUE){
+    selected.clear();
+  }else if(selected.has(value)){
+    selected.delete(value);
+  }else{
+    selected.add(value);
+  }
+  state.selectedGroupNames=[...selected];
+  state.currentUlId=ALL_ULHANA_VALUE;
+  state.groupFilterDirty=true;
+  syncPlanningGroupSelect();
+  updateUlhanaOptions();
+  updateSearchableClearButton('orgGroupFilter');
+}
+
+function applyPlanningGroupFilter(){
+  state.groupFilterDirty=false;
   state.currentUlId=ALL_ULHANA_VALUE;
   updateUlhanaOptions();
+  refreshSearchableSelect('orgGroupFilter');
   loadPlanning(ALL_ULHANA_VALUE);
 }
 
@@ -2428,10 +2540,13 @@ async function loadPlanning(ulId){
 
   const scopedOrgs=planningScopedOrgUnits();
   const isOverview=isAllOverview();
+  const selectedGroups=selectedPlanningGroupNames();
   const loadingText=isOverview
-    ? state.selectedGroupName===ALL_GROUP_VALUE
+    ? !selectedGroups.length
       ? 'กำลังสรุปทุก ULHANA ตามสิทธิ์...'
-      : `กำลังสรุปหน่วยงานระดับด้าน ${state.selectedGroupName}...`
+      : selectedGroups.length===1
+        ? `กำลังสรุปหน่วยงานระดับด้าน ${selectedGroups[0]}...`
+        : `กำลังสรุป ${fmt(selectedGroups.length)} หน่วยงานระดับด้าน...`
     : 'กำลังโหลดแผนกำลังคน...';
 
   showLoading(true,loadingText);
@@ -2611,7 +2726,7 @@ function currentOrg(){
     return {
       id:ALL_ULHANA_VALUE,
       ulhana_key:'ALL',
-      ulhana_name:state.selectedGroupName===ALL_GROUP_VALUE?'ภาพรวมทั้งหมด':`ภาพรวมด้าน ${state.selectedGroupName}`
+      ulhana_name:planningGroupScopeText()
     };
   }
   return state.orgUnits.find(x=>x.id===state.currentUlId)||{};
@@ -3166,10 +3281,13 @@ function currentPlanningScope(){
   const orgIds=isAllOverview()
     ? scopedOrgs.map(item=>item.id)
     : [state.currentUlId].filter(Boolean);
+  const selectedGroups=selectedPlanningGroupNames();
   const label=isAllOverview()
-    ? state.selectedGroupName===ALL_GROUP_VALUE
+    ? !selectedGroups.length
       ? `ภาพรวมทั้งหมด ${fmt(orgIds.length)} ULHANA ตามสิทธิ์`
-      : `ภาพรวมหน่วยงานระดับด้าน ${state.selectedGroupName} · ${fmt(orgIds.length)} ULHANA`
+      : selectedGroups.length===1
+        ? `ภาพรวมหน่วยงานระดับด้าน ${selectedGroups[0]} · ${fmt(orgIds.length)} ULHANA`
+        : `ภาพรวม ${fmt(selectedGroups.length)} หน่วยงานระดับด้าน · ${fmt(orgIds.length)} ULHANA`
     : `${currentOrg().ulhana_key||'-'} · ${currentOrg().ulhana_name||'-'}`;
   return {orgIds,label,overview:isAllOverview()};
 }
@@ -3563,7 +3681,15 @@ async function openEmployeeListModal(){
   const scopedOrgs=planningScopedOrgUnits();
   const orgIds=overview?scopedOrgs.map(item=>item.id):[state.currentUlId];
   if(!orgIds.length)return toast('ไม่พบ ULHANA ตามสิทธิ์','error');
-  showLoading(true,overview?(state.selectedGroupName===ALL_GROUP_VALUE?'กำลังโหลดรายชื่อทุก ULHANA...':`กำลังโหลดรายชื่อด้าน ${state.selectedGroupName}...`):'กำลังโหลดรายชื่อพนักงาน...');
+  const selectedGroups=selectedPlanningGroupNames();
+  const employeeLoadingText=overview
+    ? !selectedGroups.length
+      ? 'กำลังโหลดรายชื่อทุก ULHANA...'
+      : selectedGroups.length===1
+        ? `กำลังโหลดรายชื่อด้าน ${selectedGroups[0]}...`
+        : `กำลังโหลดรายชื่อ ${fmt(selectedGroups.length)} ด้าน...`
+    : 'กำลังโหลดรายชื่อพนักงาน...';
+  showLoading(true,employeeLoadingText);
   try{
     const [employees,waiting]=await Promise.all([
       fetchAllScopedRows('employees','employee_code,full_name,pc_grade,level,position_name,department,start_date,ul_promote_id,ulhana_id',orgIds,[{op:'eq',column:'active',value:true}],[{column:'ulhana_id'},{column:'level'},{column:'employee_code'}]),
@@ -7185,7 +7311,7 @@ $('expandAllBtn').onclick=()=>{
   renderActions();
 };
 $('refreshActionsBtn').onclick=async()=>{showLoading(true);await Promise.all([loadDashboard(),loadWorkflows()]);showLoading(false);renderActions()};
-const orgGroupFilter=$('orgGroupFilter');if(orgGroupFilter)orgGroupFilter.onchange=e=>changePlanningGroupFilter(e.target.value);$('ulhanaSelect').onchange=e=>loadPlanning(e.target.value);$('refreshPlanningBtn').onclick=()=>loadPlanning(state.currentUlId);$('rebuildBtn').onclick=rebuildSummary;const toggle2026DetailsButton=$('toggle2026DetailsBtn');if(toggle2026DetailsButton)toggle2026DetailsButton.onclick=toggle2026DetailRows;const exportExcelButton=$('exportExcelBtn');if(exportExcelButton)exportExcelButton.onclick=openExportExcelModal;const exportCurrentEmployeesButton=$('exportCurrentEmployeesBtn');if(exportCurrentEmployeesButton)exportCurrentEmployeesButton.onclick=runCurrentEmployeesExport;const changeLogButton=$('changeLogBtn');if(changeLogButton)changeLogButton.onclick=openChangeLogModal;const snapshotButton=$('snapshotBtn');if(snapshotButton)snapshotButton.onclick=openSnapshotModal;
+const orgGroupFilter=$('orgGroupFilter');if(orgGroupFilter)orgGroupFilter.onchange=()=>{};$('ulhanaSelect').onchange=e=>loadPlanning(e.target.value);$('refreshPlanningBtn').onclick=()=>loadPlanning(state.currentUlId);$('rebuildBtn').onclick=rebuildSummary;const toggle2026DetailsButton=$('toggle2026DetailsBtn');if(toggle2026DetailsButton)toggle2026DetailsButton.onclick=toggle2026DetailRows;const exportExcelButton=$('exportExcelBtn');if(exportExcelButton)exportExcelButton.onclick=openExportExcelModal;const exportCurrentEmployeesButton=$('exportCurrentEmployeesBtn');if(exportCurrentEmployeesButton)exportCurrentEmployeesButton.onclick=runCurrentEmployeesExport;const changeLogButton=$('changeLogBtn');if(changeLogButton)changeLogButton.onclick=openChangeLogModal;const snapshotButton=$('snapshotBtn');if(snapshotButton)snapshotButton.onclick=openSnapshotModal;
 $('fileUlhanaSelect').onchange=loadFiles;$('uploadBtn').onclick=uploadFile;
 
 if(window.matchMedia){
