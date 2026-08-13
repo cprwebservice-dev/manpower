@@ -5867,20 +5867,18 @@ function summaryExportHireForOrgs(orgs,hireByOrg){
 }
 
 function summaryExportValues(orgs,summaryByOrg,hireByOrg){
-  // Mapping Sheet Summary ตามรูปแบบรายงาน:
-  // C · BG2026 = ACT26 ปัจจุบัน + RQ26 รอเริ่มงาน + RQ26 ระหว่างสรรหา
-  // D · ACT26   = ACT26 ปัจจุบัน + RQ26 รอเริ่มงาน
+  // Mapping Sheet Summary ให้ยึดค่าจาก v_workforce_level_summary เดียวกับหน้าจอแผนกำลังคน
+  // C · BG2026 = bg26 โดยตรง (ไม่คำนวณย้อนจาก ACT26 + RQ26 เพื่อป้องกันยอดคลาดเคลื่อน)
+  // D · ACT26   = act26 + rq26_waiting เช่นเดียวกับแถว ACT26 บนหน้าจอ
   // F · Vacant  = BG2026 - ACT26
   // H · Total เพิ่ม/ลด อัตรา = รับคนเพิ่มปี 2027 จาก hire_plans โดยตรง
   // J · BG2027 H/C = BG2026 + Total เพิ่ม/ลด อัตรา
-  // % ทุกช่องใน Summary ใช้ BG2026 เป็นฐาน เพื่อให้ตรงรูปแบบรายงานตัวอย่าง
-  const act26Current=summaryExportMetricForOrgs(orgs,summaryByOrg,'act26');
-  const rq26Waiting=summaryExportMetricForOrgs(orgs,summaryByOrg,'rq26_waiting');
-  const rq26OnProcess=summaryExportMetricForOrgs(orgs,summaryByOrg,'rq26_on_process');
-  const bg26=act26Current+rq26Waiting+rq26OnProcess;
-  const act26=act26Current+rq26Waiting;
+  // % ทุกช่องใน Summary ใช้ BG2026 เป็นฐาน
+  const uniqueOrgs=[...new Map((orgs||[]).filter(org=>org?.id).map(org=>[org.id,org])).values()];
+  const bg26=summaryExportMetricForOrgs(uniqueOrgs,summaryByOrg,'bg26');
+  const act26=summaryExportMetricForOrgs(uniqueOrgs,summaryByOrg,'act26_current');
   const vacant=bg26-act26;
-  const hire27=summaryExportHireForOrgs(orgs,hireByOrg);
+  const hire27=summaryExportHireForOrgs(uniqueOrgs,hireByOrg);
   const bg27Change=hire27;
   const bg27=bg26+bg27Change;
   const safePct=value=>bg26?value/bg26:0;
