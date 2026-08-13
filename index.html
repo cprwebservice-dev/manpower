@@ -5867,22 +5867,22 @@ function summaryExportHireForOrgs(orgs,hireByOrg){
 }
 
 function summaryExportValues(orgs,summaryByOrg,hireByOrg){
-  // Mapping Sheet Summary ตามโครงสร้างรายงานที่ผู้ใช้ยืนยัน:
-  // C · BG2026 = ACT26 + RQ26 รอเริ่มงาน + RQ26 ระหว่างสรรหา
-  // D · ACT26   = ACT26 + RQ26 รอเริ่มงาน
-  // F · Vacant  = RQ26 ระหว่างสรรหา
-  // H · Total เพิ่ม/ลด อัตรา = "รับคนเพิ่ม ปี 2027" จาก hire_plans โดยตรง
-  // J · BG2027 H/C = BG2026 + รับคนเพิ่ม ปี 2027
-  // หมายเหตุ: Sheet Summary สรุปยอดรับเพิ่มตาม Sub จึงไม่ใช้ผลสุทธิ Movement มาปะปนใน H
+  // Mapping Sheet Summary ตามรูปแบบรายงาน:
+  // C · BG2026 = ACT26 ปัจจุบัน + RQ26 รอเริ่มงาน + RQ26 ระหว่างสรรหา
+  // D · ACT26   = ACT26 ปัจจุบัน + RQ26 รอเริ่มงาน
+  // F · Vacant  = BG2026 - ACT26
+  // H · Total เพิ่ม/ลด อัตรา = รับคนเพิ่มปี 2027 จาก hire_plans โดยตรง
+  // J · BG2027 H/C = BG2026 + Total เพิ่ม/ลด อัตรา
+  // % ทุกช่องใน Summary ใช้ BG2026 เป็นฐาน เพื่อให้ตรงรูปแบบรายงานตัวอย่าง
   const act26Current=summaryExportMetricForOrgs(orgs,summaryByOrg,'act26');
   const rq26Waiting=summaryExportMetricForOrgs(orgs,summaryByOrg,'rq26_waiting');
   const rq26OnProcess=summaryExportMetricForOrgs(orgs,summaryByOrg,'rq26_on_process');
   const bg26=act26Current+rq26Waiting+rq26OnProcess;
   const act26=act26Current+rq26Waiting;
-  const vacant=rq26OnProcess;
+  const vacant=bg26-act26;
   const hire27=summaryExportHireForOrgs(orgs,hireByOrg);
   const bg27Change=hire27;
-  const bg27=bg26+hire27;
+  const bg27=bg26+bg27Change;
   const safePct=value=>bg26?value/bg26:0;
   return {
     bg26,
@@ -5894,7 +5894,7 @@ function summaryExportValues(orgs,summaryByOrg,hireByOrg){
     bg27Change,
     bg27ChangePct:safePct(bg27Change),
     bg27,
-    bg27Pct:safePct(bg27Change)
+    bg27Pct:safePct(bg27-bg26)
   };
 }
 
@@ -5902,19 +5902,20 @@ function summaryExportGroups(orgs){
   const grouped=new Map();
   (orgs||[]).forEach(org=>{
     const bu=String(org.bu||'ไม่ระบุ BU').trim()||'ไม่ระบุ BU';
-    // Summary ต้องสรุปตามคอลัมน์ Sub โดยตรง ไม่ใช้ Sub Set เป็นตัวตั้ง
-    const sub=String(org.sub||org.sub_set||org.function_name||org.ulhana_name||org.ulhana_key||'ไม่ระบุ Sub').trim()||'ไม่ระบุ Sub';
+    // Sheet Summary แสดงรายละเอียดด้วย Sub Set และรวมยอดเป็น Group ตาม BU
+    // ใช้ Sub เป็น fallback เฉพาะกรณีข้อมูล Sub Set ว่าง เพื่อไม่ให้ ULHANA หลุดจากรายงาน
+    const subSet=String(org.sub_set||org.sub||org.function_name||org.ulhana_name||org.ulhana_key||'ไม่ระบุ Sub Set').trim()||'ไม่ระบุ Sub Set';
     if(!grouped.has(bu))grouped.set(bu,new Map());
-    const subMap=grouped.get(bu);
-    if(!subMap.has(sub))subMap.set(sub,[]);
-    subMap.get(sub).push(org);
+    const subSetMap=grouped.get(bu);
+    if(!subSetMap.has(subSet))subSetMap.set(subSet,[]);
+    subSetMap.get(subSet).push(org);
   });
 
   return [...grouped.entries()]
     .sort(([a],[b])=>compareOrgText(a,b))
-    .map(([bu,subMap])=>({
+    .map(([bu,subSetMap])=>({
       bu,
-      subsets:[...subMap.entries()]
+      subsets:[...subSetMap.entries()]
         .sort(([a],[b])=>compareOrgText(a,b))
         .map(([label,items])=>({label,orgs:items}))
     }));
@@ -6060,8 +6061,9 @@ function buildExcelSummarySheet(workbook,orgs,summaryByOrg,hireByOrg,scopeLabel)
     worksheet.getCell(rowNumber,2).value=label;
 
     if(formulaRows.length){
-      // Total BU / Total CPRetailink รวมจากแถว Sub เท่านั้น
-      // H คือยอดรับคนเพิ่มปี 2027 โดยตรง และ J = C + H
+      // Total BU / Total CPRetailink รวมจากแถว Sub Set ที่อยู่ภายใต้ BU นั้น
+      // C = BG2026, D = ACT26, H = รับเพิ่มปี 2027
+      // F, %, J และ K ให้คำนวณจากสูตรของแถว Total โดยตรง เพื่อป้องกันยอดคลาดเคลื่อน
       const summed=(column,result)=>{
         const references=formulaRows.map(row=>`${column}${row}`);
         const formula=references.length===1
@@ -6071,20 +6073,21 @@ function buildExcelSummarySheet(workbook,orgs,summaryByOrg,hireByOrg,scopeLabel)
       };
       worksheet.getCell(rowNumber,3).value=summed('C',values.bg26);
       worksheet.getCell(rowNumber,4).value=summed('D',values.act26);
-      worksheet.getCell(rowNumber,6).value=summed('F',values.vacant);
       worksheet.getCell(rowNumber,8).value=summed('H',values.bg27Change);
     }else{
       worksheet.getCell(rowNumber,3).value=values.bg26;
       worksheet.getCell(rowNumber,4).value=values.act26;
-      worksheet.getCell(rowNumber,6).value=values.vacant;
       worksheet.getCell(rowNumber,8).value=values.bg27Change;
     }
 
+    // Vacant และเปอร์เซ็นต์คำนวณจากเซลล์ใน Sheet โดยตรง
+    // ให้ผลทั้งระดับ Sub Set, Total BU และ Total CPRetailink ใช้สูตรเดียวกันทั้งหมด
     worksheet.getCell(rowNumber,5).value={formula:`IFERROR(D${rowNumber}/C${rowNumber},0)`,result:values.actPct};
+    worksheet.getCell(rowNumber,6).value={formula:`C${rowNumber}-D${rowNumber}`,result:values.vacant};
     worksheet.getCell(rowNumber,7).value={formula:`IFERROR(F${rowNumber}/C${rowNumber},0)`,result:values.vacantPct};
     worksheet.getCell(rowNumber,9).value={formula:`IFERROR(H${rowNumber}/C${rowNumber},0)`,result:values.bg27ChangePct};
     worksheet.getCell(rowNumber,10).value={formula:`C${rowNumber}+H${rowNumber}`,result:values.bg27};
-    worksheet.getCell(rowNumber,11).value={formula:`IFERROR(H${rowNumber}/C${rowNumber},0)`,result:values.bg27Pct};
+    worksheet.getCell(rowNumber,11).value={formula:`IFERROR((J${rowNumber}-C${rowNumber})/C${rowNumber},0)`,result:values.bg27Pct};
 
     [3,4,6,8,10].forEach(column=>worksheet.getCell(rowNumber,column).numFmt='#,##0;[Red]-#,##0;-');
     [5,7,9,11].forEach(column=>worksheet.getCell(rowNumber,column).numFmt='0.00%');
