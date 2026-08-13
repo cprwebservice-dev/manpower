@@ -6434,6 +6434,7 @@ function buildCurrentEmployeesSheet(workbook,employees,orgs,scopeLabel){
     'ด้าน',
     'ULHANA',
     'ชื่อ ULHANA',
+    'Function',
     'รหัสพนักงาน',
     'ชื่อ-นามสกุล',
     'PCgrade',
@@ -6467,7 +6468,7 @@ function buildCurrentEmployeesSheet(workbook,employees,orgs,scopeLabel){
     cell.value=header;
     cell.font={name:'Noto Sans Thai',size:9,bold:true,color:{argb:'FFFFFFFF'}};
     cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};
-    cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:index<5?'FF334155':'FF0F4F93'}};
+    cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:index<6?'FF334155':'FF0F4F93'}};
     applyExcelCellBorder(cell,'FFB8C8DA');
   });
   headerRow.height=36;
@@ -6499,6 +6500,7 @@ function buildCurrentEmployeesSheet(workbook,employees,orgs,scopeLabel){
       org.group_name||'',
       org.ulhana_key||'',
       org.ulhana_name||'',
+      org.function_name||'',
       employee.employee_code||'',
       employee.full_name||'',
       employee.pc_grade||'',
@@ -6521,7 +6523,7 @@ function buildCurrentEmployeesSheet(workbook,employees,orgs,scopeLabel){
       cell.font={name:'Noto Sans Thai',size:9,color:{argb:'FF17233B'}};
       cell.alignment={
         vertical:'middle',
-        horizontal:isNumberColumn?'center':columnNumber>=8&&columnNumber<=9?'center':'left',
+        horizontal:isNumberColumn?'center':columnNumber>=9&&columnNumber<=10?'center':'left',
         wrapText:columnNumber!==1
       };
       if(index%2===1){
@@ -6532,7 +6534,7 @@ function buildCurrentEmployeesSheet(workbook,employees,orgs,scopeLabel){
   });
 
   const totalRow=worksheet.addRow([]);
-  worksheet.mergeCells(totalRow.number,1,totalRow.number,5);
+  worksheet.mergeCells(totalRow.number,1,totalRow.number,6);
   const totalLabel=worksheet.getCell(totalRow.number,1);
   totalLabel.value='รวมพนักงานปัจจุบัน';
   totalLabel.font={name:'Noto Sans Thai',size:10,bold:true,color:{argb:'FFFFFFFF'}};
@@ -6542,7 +6544,7 @@ function buildCurrentEmployeesSheet(workbook,employees,orgs,scopeLabel){
     const cell=totalRow.getCell(column);
     cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1E293B'}};
     applyExcelCellBorder(cell,'FF94A3B8');
-    if(column===6){
+    if(column===7){
       cell.value=sortedEmployees.length;
       cell.font={name:'Noto Sans Thai',size:10,bold:true,color:{argb:'FFFFFFFF'}};
       cell.alignment={horizontal:'center',vertical:'middle'};
@@ -6550,7 +6552,7 @@ function buildCurrentEmployeesSheet(workbook,employees,orgs,scopeLabel){
     }
   }
 
-  const widths=[8,22,22,16,32,16,30,10,12,32,24,24,24,14,16,32,14,14,12];
+  const widths=[8,22,22,16,32,24,16,30,10,12,32,24,24,24,14,16,32,14,14,12];
   worksheet.columns.forEach((column,index)=>{
     column.width=widths[index]||16;
   });
