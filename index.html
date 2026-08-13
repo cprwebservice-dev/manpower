@@ -5872,16 +5872,18 @@ function summaryExportValues(orgs,summaryByOrg,hireByOrg){
   // D · ACT26   = act26 + rq26_waiting เช่นเดียวกับแถว ACT26 บนหน้าจอ
   // F · Vacant  = BG2026 - ACT26
   // H · Total เพิ่ม/ลด อัตรา = รับคนเพิ่มปี 2027 จาก hire_plans โดยตรง
-  // J · BG2027 H/C = BG2026 + Total เพิ่ม/ลด อัตรา
-  // % ทุกช่องใน Summary ใช้ BG2026 เป็นฐาน
+  // J · BG2027 H/C = ACT26 + Total เพิ่ม/ลด อัตรา
+  // K · % H/C = (BG2027 H/C - ACT26) / ACT26
+  // % ACT / Vacant / Total เพิ่ม-ลด ยังคงใช้ BG2026 เป็นฐานตามเดิม
   const uniqueOrgs=[...new Map((orgs||[]).filter(org=>org?.id).map(org=>[org.id,org])).values()];
   const bg26=summaryExportMetricForOrgs(uniqueOrgs,summaryByOrg,'bg26');
   const act26=summaryExportMetricForOrgs(uniqueOrgs,summaryByOrg,'act26_current');
   const vacant=bg26-act26;
   const hire27=summaryExportHireForOrgs(uniqueOrgs,hireByOrg);
   const bg27Change=hire27;
-  const bg27=bg26+bg27Change;
+  const bg27=act26+bg27Change;
   const safePct=value=>bg26?value/bg26:0;
+  const bg27Pct=act26?(bg27-act26)/act26:0;
   return {
     bg26,
     act26,
@@ -5892,7 +5894,7 @@ function summaryExportValues(orgs,summaryByOrg,hireByOrg){
     bg27Change,
     bg27ChangePct:safePct(bg27Change),
     bg27,
-    bg27Pct:safePct(bg27-bg26)
+    bg27Pct
   };
 }
 
@@ -6084,8 +6086,8 @@ function buildExcelSummarySheet(workbook,orgs,summaryByOrg,hireByOrg,scopeLabel)
     worksheet.getCell(rowNumber,6).value={formula:`C${rowNumber}-D${rowNumber}`,result:values.vacant};
     worksheet.getCell(rowNumber,7).value={formula:`IFERROR(F${rowNumber}/C${rowNumber},0)`,result:values.vacantPct};
     worksheet.getCell(rowNumber,9).value={formula:`IFERROR(H${rowNumber}/C${rowNumber},0)`,result:values.bg27ChangePct};
-    worksheet.getCell(rowNumber,10).value={formula:`C${rowNumber}+H${rowNumber}`,result:values.bg27};
-    worksheet.getCell(rowNumber,11).value={formula:`IFERROR((J${rowNumber}-C${rowNumber})/C${rowNumber},0)`,result:values.bg27Pct};
+    worksheet.getCell(rowNumber,10).value={formula:`D${rowNumber}+H${rowNumber}`,result:values.bg27};
+    worksheet.getCell(rowNumber,11).value={formula:`IFERROR((J${rowNumber}-D${rowNumber})/D${rowNumber},0)`,result:values.bg27Pct};
 
     [3,4,6,8,10].forEach(column=>worksheet.getCell(rowNumber,column).numFmt='#,##0;[Red]-#,##0;-');
     [5,7,9,11].forEach(column=>worksheet.getCell(rowNumber,column).numFmt='0.00%');
