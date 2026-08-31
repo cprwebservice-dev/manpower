@@ -2775,7 +2775,7 @@ function renderUlPromoteTables(){
           ['ผลต่างแผนคน ปี 2026 vs 2027 | OL26 vs BG27',bg27VsOl,'compare-row']
         ]
       : [
-          ['กำลังคนปัจจุบัน 1/8/26 | ACT26',act26,''],
+          ['กำลังคนปัจจุบัน 1/9/26 | ACT26',act26,''],
           ['ประมาณการแผนคน ถึง 31/12/26 | OL26',ol26,''],
           ['แผนคน ปี 2026 | BG26',bg26,'total-row'],
           ['ผลต่าง แผนคน | OL26 vs ACT26',olVsAct,'compare-row']
@@ -3309,7 +3309,7 @@ function renderPlanning(){
   }
   const rows=[
     {section:'ปี 2026'},
-    {label:'กำลังคนปัจจุบัน 1/8/26 | ACT26',values:byLevelCombined('act26','rq26_waiting'),cls:'',action:'employees'},
+    {label:'กำลังคนปัจจุบัน 1/9/26 | ACT26',values:byLevelCombined('act26','rq26_waiting'),cls:'',action:'employees'},
     {label:'ประมาณการแผนคน ถึง 31/12/26 | OL26',values:byLevel('ol26'),cls:'',action:''},
     {label:'ค้างรับ รอเริ่มงาน',values:byLevel('rq26_waiting'),cls:'',action:'',detail2026:true},
     {label:'ค้างรับ ระหว่างสรรหา',values:byLevel('rq26_on_process'),cls:'',action:'',detail2026:true},
@@ -5556,7 +5556,7 @@ async function cancelMovement(id){
 
 async function rebuildSummary(){if(!isSuperAdmin())return toast('เฉพาะ Super Admin เท่านั้นที่สามารถประมวลผลได้','error');showLoading(true,'กำลังประมวลผลฐานกำลังคน...');const {data,error}=await dbClient.rpc('rebuild_workforce_summaries');showLoading(false);if(error)return toast(errorText(error),'error');await Promise.all([loadDashboard(),loadPlanning(state.currentUlId)]);toast(`ประมวลผล ${data?.rows||0} รายการเรียบร้อย`,'success')}
 const EXCEL_EXPORT_GROUPS=[
-  {key:'act26_current',label:'กำลังคนปัจจุบัน 1/8/26 | ACT26'},
+  {key:'act26_current',label:'กำลังคนปัจจุบัน 1/9/26 | ACT26'},
   {key:'ol26',label:'ประมาณการแผนคน ถึง 31/12/26 | OL26'},
   {key:'rq26_waiting',label:'ค้างรับ รอเริ่มงาน'},
   {key:'rq26_on_process',label:'ค้างรับ ระหว่างสรรหา'},
