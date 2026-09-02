@@ -1418,6 +1418,215 @@
       color:#cffafe;
     }
 
+
+    /* ===== Summary 2027 · Modern refinement ===== */
+    .summary2027-hero{
+      background:
+        radial-gradient(circle at 88% 18%, rgba(255,255,255,.10), transparent 22%),
+        linear-gradient(112deg,#082f63 0%,#0c4a82 68%,#0b5b99 100%);
+      border:1px solid rgba(255,255,255,.10);
+      box-shadow:0 18px 48px rgba(8,47,99,.18);
+    }
+    .summary2027-hero::after{
+      content:"";
+      position:absolute;
+      left:0; right:0; bottom:0;
+      height:4px;
+      background:linear-gradient(90deg,#f59e0b 0%,#fb923c 45%,#fdba74 100%);
+    }
+
+    .summary2027-kpi{
+      min-height:118px;
+      padding:.85rem .9rem .9rem;
+      border-radius:1.05rem;
+      box-shadow:0 8px 22px rgba(15,23,42,.055);
+    }
+    .summary2027-kpi::after{
+      width:58px;
+      height:58px;
+      right:-16px;
+      top:-16px;
+      opacity:.72;
+    }
+    .summary2027-kpi .icon-shell{
+      width:2.35rem;
+      height:2.35rem;
+      border-radius:.82rem;
+      box-shadow:none;
+      border:1px solid rgba(255,255,255,.22);
+    }
+    .summary2027-kpi .text-3xl{
+      font-size:1.8rem;
+      line-height:2rem;
+      letter-spacing:-.025em;
+    }
+
+    /* ลดความเป็น Excel: ใช้เส้นแนวนอนเป็นหลัก และแบ่งเฉพาะกลุ่มสำคัญ */
+    .summary2027-table th,
+    .summary2027-table td{
+      border-right-color:transparent;
+      border-bottom:1px solid #dbe3ec;
+    }
+    .summary2027-table th:nth-child(2),
+    .summary2027-table td:nth-child(2),
+    .summary2027-table th:nth-child(3),
+    .summary2027-table td:nth-child(3),
+    .summary2027-table th:nth-child(5),
+    .summary2027-table td:nth-child(5),
+    .summary2027-table th:nth-child(7),
+    .summary2027-table td:nth-child(7),
+    .summary2027-table th:nth-child(9),
+    .summary2027-table td:nth-child(9),
+    .summary2027-table th:nth-child(11),
+    .summary2027-table td:nth-child(11){
+      border-right:1px solid #b8c6d6;
+    }
+    .summary2027-table .sticky-col-2{
+      box-shadow:8px 0 14px -12px rgba(15,23,42,.45);
+    }
+    .summary2027-table tbody tr.detail-row td{
+      transition:background-color .14s ease, box-shadow .14s ease;
+    }
+    .summary2027-table tbody tr.detail-row:hover td{
+      background:#e7f0fb;
+    }
+    .summary2027-table tbody tr.detail-row:hover .sticky-col,
+    .summary2027-table tbody tr.detail-row:hover .sticky-col-2{
+      box-shadow:inset 3px 0 0 #60a5fa;
+    }
+
+    .summary2027-table tbody tr.total-row td{
+      background:#dce8f8;
+      border-top:2px solid #9fb7d4;
+      border-bottom:2px solid #b8c9dd;
+      font-weight:850;
+    }
+    .summary2027-table tbody tr.total-row .label-cell{
+      color:#0b376f;
+    }
+    .summary2027-table tbody tr.grand-total-row td{
+      background:linear-gradient(90deg,#77b8d1 0%,#91c8d8 40%,#f7b47b 100%);
+      color:#082f49;
+      border-top:3px solid #0f5f88;
+      border-bottom:3px solid #0f5f88;
+      font-size:.94rem;
+      font-weight:900;
+    }
+    .summary2027-table tbody tr.grand-total-row .label-cell{
+      font-size:1rem;
+      letter-spacing:.01em;
+    }
+
+    .summary2027-vacant-btn{
+      background:rgba(255,255,255,.66);
+      border-color:rgba(14,116,144,.12);
+    }
+    .summary2027-vacant-btn:hover{
+      border-color:#22a6bd;
+      box-shadow:0 5px 14px rgba(14,116,144,.14);
+    }
+
+    /* Vacant Popover · Mini Dashboard */
+    .summary2027-vacant-mini-kpis{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:.5rem;
+      padding:.7rem .75rem .2rem;
+    }
+    .summary2027-vacant-mini-kpi{
+      border:1px solid #dbe5ef;
+      border-radius:.8rem;
+      background:#f8fafc;
+      padding:.55rem .6rem;
+      text-align:center;
+    }
+    .summary2027-vacant-mini-kpi .mini-label{
+      font-size:.65rem;
+      font-weight:800;
+      color:#94a3b8;
+      text-transform:uppercase;
+      letter-spacing:.07em;
+    }
+    .summary2027-vacant-mini-kpi .mini-value{
+      margin-top:.1rem;
+      font-size:1.05rem;
+      font-weight:900;
+      color:#0f172a;
+      font-variant-numeric:tabular-nums;
+    }
+    .summary2027-vacant-mini-kpi.is-vacant{
+      border-color:#a5e5ef;
+      background:#ecfeff;
+    }
+    .summary2027-vacant-mini-kpi.is-vacant .mini-value{
+      color:#0e7490;
+    }
+
+    [data-theme="dark"] .summary2027-hero{
+      background:
+        radial-gradient(circle at 88% 18%, rgba(125,211,252,.09), transparent 22%),
+        linear-gradient(112deg,#081a31 0%,#0b2b4d 70%,#103a60 100%);
+      border-color:rgba(148,163,184,.18);
+      box-shadow:0 20px 52px rgba(0,0,0,.42);
+    }
+    [data-theme="dark"] .summary2027-table th,
+    [data-theme="dark"] .summary2027-table td{
+      border-bottom-color:rgba(100,116,139,.34);
+      border-right-color:transparent;
+    }
+    [data-theme="dark"] .summary2027-table th:nth-child(2),
+    [data-theme="dark"] .summary2027-table td:nth-child(2),
+    [data-theme="dark"] .summary2027-table th:nth-child(3),
+    [data-theme="dark"] .summary2027-table td:nth-child(3),
+    [data-theme="dark"] .summary2027-table th:nth-child(5),
+    [data-theme="dark"] .summary2027-table td:nth-child(5),
+    [data-theme="dark"] .summary2027-table th:nth-child(7),
+    [data-theme="dark"] .summary2027-table td:nth-child(7),
+    [data-theme="dark"] .summary2027-table th:nth-child(9),
+    [data-theme="dark"] .summary2027-table td:nth-child(9),
+    [data-theme="dark"] .summary2027-table th:nth-child(11),
+    [data-theme="dark"] .summary2027-table td:nth-child(11){
+      border-right-color:rgba(100,116,139,.52);
+    }
+    [data-theme="dark"] .summary2027-table .sticky-col-2{
+      box-shadow:8px 0 16px -12px rgba(0,0,0,.8);
+    }
+    [data-theme="dark"] .summary2027-table tbody tr.detail-row:hover td{
+      background:#1a2a40;
+    }
+    [data-theme="dark"] .summary2027-table tbody tr.detail-row:hover .sticky-col,
+    [data-theme="dark"] .summary2027-table tbody tr.detail-row:hover .sticky-col-2{
+      box-shadow:inset 3px 0 0 #38bdf8;
+    }
+    [data-theme="dark"] .summary2027-table tbody tr.total-row td{
+      background:#263950;
+      border-top-color:#45627f;
+      border-bottom-color:#3a526b;
+    }
+    [data-theme="dark"] .summary2027-table tbody tr.total-row .label-cell{
+      color:#bfdbfe;
+    }
+    [data-theme="dark"] .summary2027-table tbody tr.grand-total-row td{
+      background:linear-gradient(90deg,#17445b 0%,#23566b 44%,#754923 100%);
+      border-top-color:#38bdf8;
+      border-bottom-color:#f59e0b;
+      color:#f8fafc;
+    }
+    [data-theme="dark"] .summary2027-vacant-mini-kpi{
+      border-color:#334155;
+      background:#111827;
+    }
+    [data-theme="dark"] .summary2027-vacant-mini-kpi .mini-value{
+      color:#f8fafc;
+    }
+    [data-theme="dark"] .summary2027-vacant-mini-kpi.is-vacant{
+      border-color:#155e75;
+      background:#123243;
+    }
+    [data-theme="dark"] .summary2027-vacant-mini-kpi.is-vacant .mini-value{
+      color:#67e8f9;
+    }
+
 </style>
 </head>
 <body class="min-h-screen">
@@ -1751,7 +1960,7 @@ const dbClient = window.supabase.createClient(SB_URL, SB_PUBLISHABLE_KEY);</pre>
 
       <!-- SUMMARY 2027 TAB -->
       <section id="tab-summary2027" class="tab-panel hidden">
-        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#0a3c74] via-[#0f5ea8] to-[#f59e0b] p-5 text-white shadow-xl sm:p-7">
+        <div class="summary2027-hero relative overflow-hidden rounded-3xl p-5 text-white shadow-xl sm:p-7">
           <div class="pointer-events-none absolute -right-10 -top-16 h-48 w-48 rounded-full bg-white/10"></div>
           <div class="pointer-events-none absolute -bottom-20 left-24 h-40 w-40 rounded-full bg-cyan-300/10"></div>
           <div class="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
@@ -1783,7 +1992,7 @@ const dbClient = window.supabase.createClient(SB_URL, SB_PUBLISHABLE_KEY);</pre>
             <div>
               <div class="flex items-center gap-2 text-lg font-extrabold text-slate-900">
                 <i data-lucide="layout-list" class="h-5 w-5 text-blue-600"></i>
-                ตารางสรุปตาม BU และ Sub Set
+                Executive Summary · BU และ Sub Set
               </div>
               <p id="summary2027Subtitle" class="mt-1 text-sm text-slate-500">ใช้ตัวกรองหน่วยงานระดับด้านเดียวกับแท็บแผนกำลังคน และแสดงผลเฉพาะข้อมูลตามสิทธิ์</p>
             </div>
@@ -6595,13 +6804,13 @@ function summary2027MetricClass(value){
 function summary2027KpiCard({icon,title,value,subtext,gradient='from-blue-600 to-cyan-500'}){
   return `<div class="summary2027-kpi">
     <div class="flex items-start justify-between gap-3">
-      <div>
-        <div class="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">${esc(title)}</div>
-        <div class="mt-2 text-3xl font-extrabold tracking-tight text-slate-900">${esc(value)}</div>
-        <div class="mt-1 text-sm font-semibold text-slate-500">${esc(subtext)}</div>
+      <div class="min-w-0">
+        <div class="truncate text-[10px] font-extrabold uppercase tracking-[0.12em] text-slate-400" title="${esc(title)}">${esc(title)}</div>
+        <div class="mt-1.5 text-3xl font-extrabold tracking-tight text-slate-900">${esc(value)}</div>
+        <div class="mt-0.5 truncate text-xs font-bold text-slate-500" title="${esc(subtext)}">${esc(subtext)}</div>
       </div>
       <div class="icon-shell bg-gradient-to-br ${gradient}">
-        <i data-lucide="${esc(icon)}" class="h-5 w-5"></i>
+        <i data-lucide="${esc(icon)}" class="h-4.5 w-4.5"></i>
       </div>
     </div>
   </div>`;
@@ -6712,6 +6921,8 @@ function openSummary2027VacantPopover(event,rowIndex){
 
   const details=summary2027VacantDetailsForRow(row);
   const total=details.reduce((sum,item)=>sum+(Number(item.qty)||0),0);
+  const unitCount=new Set(details.map(item=>String(item.ulhanaId||item.ulhanaKey||''))).size;
+  const positionCount=new Set(details.map(item=>`${item.level||''}|||${item.position||''}`)).size;
   const button=event.currentTarget;
   const rect=button.getBoundingClientRect();
 
@@ -6726,6 +6937,20 @@ function openSummary2027VacantPopover(event,rowIndex){
       <div class="mt-1 text-xs text-slate-500">RQ26 On Process · ${fmt(total)} อัตรา · ${fmt(details.length)} รายการหน่วยงาน/ตำแหน่ง</div>
     </div>
     <button type="button" onclick="closeSummary2027VacantPopover()" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-200/60 hover:text-slate-700" aria-label="ปิด"><i data-lucide="x" class="h-4 w-4"></i></button>
+  </div>
+  <div class="summary2027-vacant-mini-kpis">
+    <div class="summary2027-vacant-mini-kpi is-vacant">
+      <div class="mini-label">Vacant</div>
+      <div class="mini-value">${fmt(total)}</div>
+    </div>
+    <div class="summary2027-vacant-mini-kpi">
+      <div class="mini-label">หน่วยงาน</div>
+      <div class="mini-value">${fmt(unitCount)}</div>
+    </div>
+    <div class="summary2027-vacant-mini-kpi">
+      <div class="mini-label">ตำแหน่ง</div>
+      <div class="mini-value">${fmt(positionCount)}</div>
+    </div>
   </div>
   <div class="popover-body scrollbar-thin">
     ${details.length?details.map(item=>`<div class="vacant-detail-row">
