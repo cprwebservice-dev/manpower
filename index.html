@@ -5597,13 +5597,13 @@ function openExportExcelModal(){
   openModal(`<div class="border-b border-slate-200 p-5">
     <div class="flex items-start gap-3">
       <div class="rounded-xl bg-emerald-50 p-2 text-emerald-700"><i data-lucide="file-spreadsheet" class="h-6 w-6"></i></div>
-      <div><h3 class="text-xl font-bold">Export รายงาน Excel</h3><p class="text-sm text-slate-500">สร้างรายงาน 3 Sheet: Summary, Group BU และ Group สำนัก</p></div>
+      <div><h3 class="text-xl font-bold">Export รายงาน Excel</h3><p class="text-sm text-slate-500">สร้างรายงาน 5 Sheet: Summary, Group BU, Group สำนัก, ปรับตำแหน่ง 2026 และ ปรับตำแหน่ง 2027</p></div>
       <button type="button" onclick="closeModal()" class="ml-auto rounded-lg p-2 hover:bg-slate-100"><i data-lucide="x" class="h-5 w-5"></i></button>
     </div>
   </div>
   <div class="space-y-4 p-5">
     <div class="rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm leading-6 text-blue-800">
-      ระบบจะสร้างไฟล์ XLSX จากข้อมูล Supabase เฉพาะตอนกด Export จึงไม่เพิ่มภาระขณะเปิดหน้าเว็บ พร้อม Freeze Pane, Filter, Grand Total สีผลต่างบวก/ลบ และแผนรับคนปี 2027 แยกรายเดือน
+      ระบบจะสร้างไฟล์ XLSX จากข้อมูล Supabase เฉพาะตอนกด Export จึงไม่เพิ่มภาระขณะเปิดหน้าเว็บ พร้อม Freeze Pane, Filter, Grand Total สีผลต่างบวก/ลบ, แผนรับคนปี 2027 แยกรายเดือน และรายละเอียดการปรับตำแหน่งปี 2026–2027
     </div>
     <div class="grid gap-3 md:grid-cols-2">
       <label class="cursor-pointer rounded-2xl border border-blue-300 bg-blue-50 p-4 hover:border-blue-500">
@@ -5719,6 +5719,272 @@ async function fetchExcelHire2027Rows(orgIds){
   }
   return result;
 }
+
+
+function movementExcelExportRestricted(){
+  return state.profile?.role==='Admin';
+}
+
+async function fetchExcelMovementRows(orgIds,planYear){
+  const rowMap=new Map();
+  const ids=[...new Set((orgIds||[]).filter(Boolean))];
+  if(!ids.length)return [];
+
+  const fields=[
+    'id',
+    'plan_year',
+    'effective_month',
+    'movement_type',
+    'employee_id',
+    'employee_code',
+    'employee_name',
+    'from_ulhana_id',
+    'from_level',
+    'from_position',
+    'to_ulhana_id',
+    'to_level',
+    'to_position',
+    'promotion_position_name',
+    'qty',
+    'reason',
+    'status',
+    'created_at',
+    'updated_at',
+    'from_ulhana:org_units!movement_plans_from_ulhana_id_fkey(ulhana_key,ulhana_name,bu,sub,sub_set,function_name,office,group_name)',
+    'to_ulhana:org_units!movement_plans_to_ulhana_id_fkey(ulhana_key,ulhana_name,bu,sub,sub_set,function_name,office,group_name)'
+  ].join(',');
+
+  for(const idChunk of chunkArray(ids,100)){
+    for(const scopeColumn of ['from_ulhana_id','to_ulhana_id']){
+      let from=0;
+      while(true){
+        const {data,error}=await dbClient.from('movement_plans')
+          .select(fields)
+          .in(scopeColumn,idChunk)
+          .eq('plan_year',Number(planYear))
+          .eq('status','active')
+          .order('effective_month')
+          .order('employee_code')
+          .range(from,from+999);
+
+        if(error)throw error;
+        (data||[]).forEach(row=>rowMap.set(row.id,row));
+        if(!data||data.length<1000)break;
+        from+=1000;
+      }
+    }
+  }
+
+  return [...rowMap.values()].sort((a,b)=>
+    Number(a.effective_month||0)-Number(b.effective_month||0)
+    || String(a.from_ulhana?.ulhana_key||'').localeCompare(String(b.from_ulhana?.ulhana_key||''),'th')
+    || String(a.employee_code||'').localeCompare(String(b.employee_code||''),'th')
+  );
+}
+
+function movementExportRelation(row,scopeOrgIds){
+  const ids=scopeOrgIds instanceof Set?scopeOrgIds:new Set(scopeOrgIds||[]);
+  const fromIn=ids.has(row?.from_ulhana_id);
+  const toIn=ids.has(row?.to_ulhana_id);
+  if(fromIn&&toIn)return 'ต้นทาง + ปลายทาง';
+  if(fromIn)return 'ต้นทาง';
+  if(toIn)return 'ปลายทาง';
+  return '';
+}
+
+function movementExportDateTime(value){
+  if(!value)return '';
+  const date=new Date(value);
+  if(Number.isNaN(date.getTime()))return String(value);
+  return date.toLocaleString('th-TH',{
+    day:'2-digit',
+    month:'2-digit',
+    year:'numeric',
+    hour:'2-digit',
+    minute:'2-digit'
+  });
+}
+
+function buildMovementExportSheet(workbook,planYear,rows,orgs,scopeLabel,restricted=false){
+  const sheetName=`ปรับตำแหน่ง ${planYear}`;
+  const worksheet=workbook.addWorksheet(sheetName,{
+    views:[{
+      state:'frozen',
+      xSplit:5,
+      ySplit:3,
+      topLeftCell:'F4',
+      activeCell:'F4'
+    }]
+  });
+
+  const headers=[
+    'ลำดับ',
+    'ความเกี่ยวข้องกับ Scope',
+    'ปี',
+    'เดือนมีผล',
+    'ประเภท',
+    'รหัสพนักงาน',
+    'ชื่อ-นามสกุล',
+    'จำนวน',
+    'ระดับเดิม',
+    'ตำแหน่งเดิม',
+    'ULHANA ต้นทาง',
+    'ชื่อ ULHANA ต้นทาง',
+    'Function ต้นทาง',
+    'สำนักต้นทาง',
+    'ด้านต้นทาง',
+    'ระดับใหม่',
+    'ตำแหน่งใหม่',
+    'ULHANA ปลายทาง',
+    'ชื่อ ULHANA ปลายทาง',
+    'Function ปลายทาง',
+    'สำนักปลายทาง',
+    'ด้านปลายทาง',
+    'เหตุผล / หมายเหตุ',
+    'สถานะ',
+    'สร้างเมื่อ',
+    'แก้ไขล่าสุด'
+  ];
+
+  const totalColumns=headers.length;
+  const lastColumnLetter=excelColumnLetter(totalColumns);
+
+  worksheet.mergeCells(`A1:${lastColumnLetter}1`);
+  const titleCell=worksheet.getCell('A1');
+  titleCell.value=`รายละเอียดปรับตำแหน่ง ปี ${planYear} · ${scopeLabel}`;
+  titleCell.font={name:'Noto Sans Thai',size:15,bold:true,color:{argb:'FFFFFFFF'}};
+  titleCell.alignment={horizontal:'center',vertical:'middle'};
+  titleCell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF92400E'}};
+  worksheet.getRow(1).height=30;
+
+  worksheet.mergeCells(`A2:${lastColumnLetter}2`);
+  const noteCell=worksheet.getCell('A2');
+  noteCell.value=restricted
+    ? 'Role Admin ไม่มีสิทธิ์ดูรายละเอียดแผนปรับตำแหน่งตามสิทธิ์เดิมของระบบ จึงไม่แสดงข้อมูลใน Sheet นี้'
+    : `แสดงรายการ Active ที่ ULHANA ใน Scope เป็นทั้งต้นทางหรือปลายทาง · รายการเดียวกันแสดงเพียง 1 ครั้ง · รวม ${fmt((rows||[]).reduce((sum,row)=>sum+(Number(row.qty)||1),0))} อัตรา`;
+  noteCell.font={name:'Noto Sans Thai',size:9,bold:true,color:{argb:restricted?'FF991B1B':'FF7C2D12'}};
+  noteCell.alignment={horizontal:'left',vertical:'middle',wrapText:true};
+  noteCell.fill={type:'pattern',pattern:'solid',fgColor:{argb:restricted?'FFFEE2E2':'FFFFF7ED'}};
+  applyExcelCellBorder(noteCell,restricted?'FFFCA5A5':'FFFED7AA');
+  worksheet.getRow(2).height=32;
+
+  const headerRow=worksheet.getRow(3);
+  headers.forEach((header,index)=>{
+    const cell=headerRow.getCell(index+1);
+    cell.value=header;
+    cell.font={name:'Noto Sans Thai',size:9,bold:true,color:{argb:'FFFFFFFF'}};
+    cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};
+    cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFB45309'}};
+    applyExcelCellBorder(cell,'FFF3C88B');
+  });
+  headerRow.height=38;
+
+  if(!restricted){
+    const scopeOrgIds=new Set((orgs||[]).map(org=>org.id).filter(Boolean));
+    (rows||[]).forEach((row,index)=>{
+      const fromOrg=normalizeRelationObject(row.from_ulhana)||{};
+      const toOrg=normalizeRelationObject(row.to_ulhana)||{};
+      const excelRow=worksheet.addRow([
+        index+1,
+        movementExportRelation(row,scopeOrgIds),
+        Number(row.plan_year)||planYear,
+        movementMonthLabel(row.plan_year,row.effective_month),
+        row.movement_type==='promotion'?'ปรับตำแหน่ง':(row.movement_type||''),
+        row.employee_code||'',
+        row.employee_name||'',
+        Number(row.qty)||1,
+        row.from_level||'',
+        row.from_position||'',
+        fromOrg.ulhana_key||'',
+        fromOrg.ulhana_name||'',
+        fromOrg.function_name||'',
+        fromOrg.office||'',
+        fromOrg.group_name||'',
+        row.to_level||'',
+        row.to_position||row.promotion_position_name||'',
+        toOrg.ulhana_key||'',
+        toOrg.ulhana_name||'',
+        toOrg.function_name||'',
+        toOrg.office||'',
+        toOrg.group_name||'',
+        row.reason||'',
+        row.status||'',
+        movementExportDateTime(row.created_at),
+        movementExportDateTime(row.updated_at)
+      ]);
+
+      excelRow.height=(row.reason?36:22);
+      excelRow.eachCell({includeEmpty:true},(cell,columnNumber)=>{
+        cell.font={name:'Noto Sans Thai',size:9,color:{argb:'FF17233B'}};
+        cell.alignment={
+          vertical:'middle',
+          horizontal:[1,3,8].includes(columnNumber)?'center':'left',
+          wrapText:true
+        };
+        if(index%2===1){
+          cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFFBEB'}};
+        }
+        applyExcelCellBorder(cell,'FFF0D5A8');
+      });
+
+      excelRow.getCell(8).numFmt='0';
+      excelRow.getCell(16).font={name:'Noto Sans Thai',size:9,bold:true,color:{argb:'FF047857'}};
+      excelRow.getCell(17).font={name:'Noto Sans Thai',size:9,bold:true,color:{argb:'FF047857'}};
+      excelRow.getCell(18).font={name:'Noto Sans Thai',size:9,bold:true,color:{argb:'FF1D4ED8'}};
+    });
+  }
+
+  const firstDataRow=4;
+  const lastDataRow=3+(restricted?0:(rows||[]).length);
+  const totalRow=worksheet.addRow([]);
+  worksheet.mergeCells(totalRow.number,1,totalRow.number,7);
+  const totalLabel=worksheet.getCell(totalRow.number,1);
+  totalLabel.value=restricted?'ไม่มีข้อมูลตามสิทธิ์':'รวมอัตราปรับตำแหน่ง';
+  totalLabel.font={name:'Noto Sans Thai',size:10,bold:true,color:{argb:'FFFFFFFF'}};
+  totalLabel.alignment={horizontal:'right',vertical:'middle'};
+
+  for(let column=1;column<=totalColumns;column++){
+    const cell=totalRow.getCell(column);
+    cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF92400E'}};
+    applyExcelCellBorder(cell,'FFF3C88B');
+    cell.font={name:'Noto Sans Thai',size:10,bold:true,color:{argb:'FFFFFFFF'}};
+    if(column===8){
+      cell.value=restricted
+        ? 0
+        : (rows||[]).length
+          ? {formula:`SUM(H${firstDataRow}:H${lastDataRow})`,result:(rows||[]).reduce((sum,row)=>sum+(Number(row.qty)||1),0)}
+          : 0;
+      cell.alignment={horizontal:'center',vertical:'middle'};
+      cell.numFmt='0';
+    }
+  }
+  totalRow.height=24;
+
+  const widths=[
+    8,18,9,20,14,15,28,10,13,28,16,32,22,22,22,13,28,16,32,22,22,22,46,12,20,20
+  ];
+  worksheet.columns.forEach((column,index)=>{
+    column.width=widths[index]||16;
+  });
+
+  worksheet.autoFilter={
+    from:'A3',
+    to:`${lastColumnLetter}${Math.max(lastDataRow,3)}`
+  };
+
+  worksheet.pageSetup={
+    orientation:'landscape',
+    paperSize:9,
+    fitToPage:true,
+    fitToWidth:1,
+    fitToHeight:0,
+    margins:{left:0.25,right:0.25,top:0.5,bottom:0.5,header:0.2,footer:0.2},
+    printTitlesRow:'1:3'
+  };
+  worksheet.headerFooter.oddFooter='หน้า &P / &N';
+  worksheet.properties.defaultRowHeight=20;
+}
+
 
 function groupHire2027RowsByOrg(rows){
   const grouped=new Map();
@@ -6674,7 +6940,7 @@ function openExcelExportResultModal(fileName,rowCount,scopeLabel){
   <div class="p-5">
     <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
       <div class="font-bold text-emerald-900">${esc(fileName)}</div>
-      <div class="mt-1 text-sm text-emerald-800">จำนวน ${fmt(rowCount)} ULHANA · 3 Sheet: Summary, Group BU และ Group สำนัก</div>
+      <div class="mt-1 text-sm text-emerald-800">จำนวน ${fmt(rowCount)} ULHANA · 5 Sheet: Summary, Group BU, Group สำนัก, ปรับตำแหน่ง 2026 และ ปรับตำแหน่ง 2027</div>
     </div>
   </div>
   <div class="flex justify-end gap-2 border-t border-slate-200 p-4">
@@ -6699,9 +6965,12 @@ async function runExcelExport(){
   try{
     const ExcelJS=await loadExcelJsOnDemand();
     const orgIds=orgs.map(item=>item.id);
-    const [summaryRows,hire2027Rows]=await Promise.all([
+    const movementRestricted=movementExcelExportRestricted();
+    const [summaryRows,hire2027Rows,movement2026Rows,movement2027Rows]=await Promise.all([
       fetchExcelLevelRows(orgIds),
-      fetchExcelHire2027Rows(orgIds)
+      fetchExcelHire2027Rows(orgIds),
+      movementRestricted?Promise.resolve([]):fetchExcelMovementRows(orgIds,2026),
+      movementRestricted?Promise.resolve([]):fetchExcelMovementRows(orgIds,2027)
     ]);
     const summaryByOrg=groupLevelRowsByOrg(summaryRows);
     const hireByOrg=groupHire2027RowsByOrg(hire2027Rows);
@@ -6721,6 +6990,8 @@ async function runExcelExport(){
     buildExcelSummarySheet(workbook,orgs,summaryByOrg,hireByOrg,scopeLabel);
     buildExcelReportSheet(workbook,'Group BU',orgs,summaryByOrg,hireByOrg,'BU',scopeLabel,includeHireReason);
     buildExcelReportSheet(workbook,'Group สำนัก',orgs,summaryByOrg,hireByOrg,'OFFICE',scopeLabel,includeHireReason);
+    buildMovementExportSheet(workbook,2026,movement2026Rows,orgs,scopeLabel,movementRestricted);
+    buildMovementExportSheet(workbook,2027,movement2027Rows,orgs,scopeLabel,movementRestricted);
 
     const buffer=await workbook.xlsx.writeBuffer();
     const blob=new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
