@@ -1319,8 +1319,10 @@
     .summary2027-vacant-popover{
       position:fixed;
       z-index:180;
+      display:flex;
+      flex-direction:column;
       width:min(470px,calc(100vw - 24px));
-      max-height:min(460px,calc(100vh - 32px));
+      max-height:min(560px,calc(100vh - 24px));
       overflow:hidden;
       border:1px solid #cbd5e1;
       border-radius:1rem;
@@ -1347,9 +1349,12 @@
       color:#fff;
     }
     .summary2027-vacant-popover .popover-body{
-      max-height:350px;
+      flex:1 1 auto;
+      min-height:0;
+      max-height:none;
       overflow:auto;
-      padding:.65rem;
+      overscroll-behavior:contain;
+      padding:.65rem .65rem 1rem;
     }
     .summary2027-vacant-popover .vacant-detail-row{
       display:grid;
@@ -1625,6 +1630,15 @@
     }
     [data-theme="dark"] .summary2027-vacant-mini-kpi.is-vacant .mini-value{
       color:#67e8f9;
+    }
+
+
+    .summary2027-vacant-popover .summary2027-vacant-mini-kpis{
+      flex:0 0 auto;
+    }
+    .summary2027-vacant-popover .vacant-detail-row:last-child{
+      margin-bottom:.25rem;
+      border-bottom:0;
     }
 
 </style>
@@ -6972,14 +6986,28 @@ function openSummary2027VacantPopover(event,rowIndex){
   let left=rect.left+(rect.width/2)-(width/2);
   left=Math.max(12,Math.min(left,window.innerWidth-width-12));
 
-  let top=rect.bottom+gap;
-  if(top+height>window.innerHeight-12){
-    top=rect.top-height-gap;
+  const availableBelow=Math.max(220,window.innerHeight-rect.bottom-16);
+  const availableAbove=Math.max(220,rect.top-16);
+  const preferBelow=availableBelow>=availableAbove;
+  const availableHeight=Math.min(560,(preferBelow?availableBelow:availableAbove)-gap);
+
+  popover.style.maxHeight=`${Math.max(220,availableHeight)}px`;
+
+  const adjustedHeight=popover.offsetHeight;
+  let top=preferBelow ? rect.bottom+gap : rect.top-adjustedHeight-gap;
+
+  if(top+adjustedHeight>window.innerHeight-12){
+    top=window.innerHeight-adjustedHeight-12;
   }
-  top=Math.max(12,Math.min(top,window.innerHeight-height-12));
+  if(top<12){
+    top=12;
+  }
 
   popover.style.left=`${Math.round(left)}px`;
   popover.style.top=`${Math.round(top)}px`;
+
+  const scrollBody=popover.querySelector('.popover-body');
+  if(scrollBody)scrollBody.scrollTop=0;
 
   window.setTimeout(()=>{
     document.addEventListener('pointerdown',summary2027VacantOutsideHandler,true);
