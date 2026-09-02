@@ -6134,9 +6134,9 @@ function summaryExportHireForOrgs(orgs,hireByOrg){
 
 function summaryExportValues(orgs,summaryByOrg,hireByOrg){
   // Mapping Sheet Summary ให้ยึดค่าจาก v_workforce_level_summary เดียวกับหน้าจอแผนกำลังคน
-  // C · BG2026 = bg26 โดยตรง (ไม่คำนวณย้อนจาก ACT26 + RQ26 เพื่อป้องกันยอดคลาดเคลื่อน)
+  // C · BG2026 = bg26 โดยตรง
   // D · ACT26   = act26 + rq26_waiting เช่นเดียวกับแถว ACT26 บนหน้าจอ
-  // F · Vacant  = BG2026 - ACT26
+  // F · Vacant  = rq26_on_process โดยตรง (ไม่รวมผล Move26 In/Out)
   // H · Total เพิ่ม/ลด อัตรา = รับคนเพิ่มปี 2027 จาก hire_plans โดยตรง
   // J · BG2027 H/C = ACT26 + Total เพิ่ม/ลด อัตรา
   // K · % H/C = (BG2027 H/C - ACT26) / ACT26
@@ -6144,7 +6144,7 @@ function summaryExportValues(orgs,summaryByOrg,hireByOrg){
   const uniqueOrgs=[...new Map((orgs||[]).filter(org=>org?.id).map(org=>[org.id,org])).values()];
   const bg26=summaryExportMetricForOrgs(uniqueOrgs,summaryByOrg,'bg26');
   const act26=summaryExportMetricForOrgs(uniqueOrgs,summaryByOrg,'act26_current');
-  const vacant=bg26-act26;
+  const vacant=summaryExportMetricForOrgs(uniqueOrgs,summaryByOrg,'rq26_on_process');
   const hire27=summaryExportHireForOrgs(uniqueOrgs,hireByOrg);
   const bg27Change=hire27;
   const bg27=act26+bg27Change;
@@ -6168,20 +6168,20 @@ function summaryExportGroups(orgs){
   const grouped=new Map();
   (orgs||[]).forEach(org=>{
     const bu=String(org.bu||'ไม่ระบุ BU').trim()||'ไม่ระบุ BU';
-    // Sheet Summary แสดงรายละเอียดด้วย Sub Set และรวมยอดเป็น Group ตาม BU
-    // ใช้ Sub เป็น fallback เฉพาะกรณีข้อมูล Sub Set ว่าง เพื่อไม่ให้ ULHANA หลุดจากรายงาน
-    const subSet=String(org.sub_set||org.sub||org.function_name||org.ulhana_name||org.ulhana_key||'ไม่ระบุ Sub Set').trim()||'ไม่ระบุ Sub Set';
+    // Sheet Summary แสดงรายละเอียดตาม Sub เพื่อให้ตรวจสอบย้อนกลับกับ rq26_requests ได้ตรง
+    // ใช้ Sub Set เป็น fallback เฉพาะกรณี Sub ว่าง เพื่อไม่ให้ ULHANA หลุดจากรายงาน
+    const sub=String(org.sub||org.sub_set||org.function_name||org.ulhana_name||org.ulhana_key||'ไม่ระบุ Sub').trim()||'ไม่ระบุ Sub';
     if(!grouped.has(bu))grouped.set(bu,new Map());
-    const subSetMap=grouped.get(bu);
-    if(!subSetMap.has(subSet))subSetMap.set(subSet,[]);
-    subSetMap.get(subSet).push(org);
+    const subMap=grouped.get(bu);
+    if(!subMap.has(sub))subMap.set(sub,[]);
+    subMap.get(sub).push(org);
   });
 
   return [...grouped.entries()]
     .sort(([a],[b])=>compareOrgText(a,b))
-    .map(([bu,subSetMap])=>({
+    .map(([bu,subMap])=>({
       bu,
-      subsets:[...subSetMap.entries()]
+      subsets:[...subMap.entries()]
         .sort(([a],[b])=>compareOrgText(a,b))
         .map(([label,items])=>({label,orgs:items}))
     }));
@@ -6265,7 +6265,7 @@ function buildExcelSummarySheet(workbook,orgs,summaryByOrg,hireByOrg,scopeLabel)
   mergeAndStyle('B3:B5','BU',colors.blue);
   mergeAndStyle('C3:C4','BG2026',colors.green);
   mergeAndStyle('D3:E4','ACT26',colors.charcoal,'FF000000');
-  mergeAndStyle('F3:G4','Vacant (BG26 Vs ACT26)',colors.cyan);
+  mergeAndStyle('F3:G4','Vacant (RQ26 On Process)',colors.cyan);
   mergeAndStyle('H3:K3','BG2027 H/C จาก ACT2026',colors.coral);
   mergeAndStyle('H4:I4','Total เพิ่ม/ลด อัตรา',colors.peach);
   mergeAndStyle('J4:K4','BG2027 H/C จาก ACT2026',colors.orange);
@@ -6327,9 +6327,8 @@ function buildExcelSummarySheet(workbook,orgs,summaryByOrg,hireByOrg,scopeLabel)
     worksheet.getCell(rowNumber,2).value=label;
 
     if(formulaRows.length){
-      // Total BU / Total CPRetailink รวมจากแถว Sub Set ที่อยู่ภายใต้ BU นั้น
-      // C = BG2026, D = ACT26, H = รับเพิ่มปี 2027
-      // F, %, J และ K ให้คำนวณจากสูตรของแถว Total โดยตรง เพื่อป้องกันยอดคลาดเคลื่อน
+      // Total BU / Total CPRetailink รวมจากแถว Sub ที่อยู่ภายใต้ BU นั้น
+      // C = BG2026, D = ACT26, F = Vacant (RQ26 On Process), H = รับเพิ่มปี 2027
       const summed=(column,result)=>{
         const references=formulaRows.map(row=>`${column}${row}`);
         const formula=references.length===1
@@ -6339,17 +6338,17 @@ function buildExcelSummarySheet(workbook,orgs,summaryByOrg,hireByOrg,scopeLabel)
       };
       worksheet.getCell(rowNumber,3).value=summed('C',values.bg26);
       worksheet.getCell(rowNumber,4).value=summed('D',values.act26);
+      worksheet.getCell(rowNumber,6).value=summed('F',values.vacant);
       worksheet.getCell(rowNumber,8).value=summed('H',values.bg27Change);
     }else{
       worksheet.getCell(rowNumber,3).value=values.bg26;
       worksheet.getCell(rowNumber,4).value=values.act26;
+      worksheet.getCell(rowNumber,6).value=values.vacant;
       worksheet.getCell(rowNumber,8).value=values.bg27Change;
     }
 
-    // Vacant และเปอร์เซ็นต์คำนวณจากเซลล์ใน Sheet โดยตรง
-    // ให้ผลทั้งระดับ Sub Set, Total BU และ Total CPRetailink ใช้สูตรเดียวกันทั้งหมด
+    // Vacant = rq26_on_process โดยตรง; Movement ปี 2026 ไม่ถูกนำมาปะปนใน Vacant
     worksheet.getCell(rowNumber,5).value={formula:`IFERROR(D${rowNumber}/C${rowNumber},0)`,result:values.actPct};
-    worksheet.getCell(rowNumber,6).value={formula:`C${rowNumber}-D${rowNumber}`,result:values.vacant};
     worksheet.getCell(rowNumber,7).value={formula:`IFERROR(F${rowNumber}/C${rowNumber},0)`,result:values.vacantPct};
     worksheet.getCell(rowNumber,9).value={formula:`IFERROR(H${rowNumber}/C${rowNumber},0)`,result:values.bg27ChangePct};
     worksheet.getCell(rowNumber,10).value={formula:`D${rowNumber}+H${rowNumber}`,result:values.bg27};
