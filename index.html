@@ -6168,20 +6168,21 @@ function summaryExportGroups(orgs){
   const grouped=new Map();
   (orgs||[]).forEach(org=>{
     const bu=String(org.bu||'ไม่ระบุ BU').trim()||'ไม่ระบุ BU';
-    // Sheet Summary แสดงรายละเอียดตาม Sub เพื่อให้ตรวจสอบย้อนกลับกับ rq26_requests ได้ตรง
-    // ใช้ Sub Set เป็น fallback เฉพาะกรณี Sub ว่าง เพื่อไม่ให้ ULHANA หลุดจากรายงาน
-    const sub=String(org.sub||org.sub_set||org.function_name||org.ulhana_name||org.ulhana_key||'ไม่ระบุ Sub').trim()||'ไม่ระบุ Sub';
+    // Sheet Summary แสดงรายละเอียดตาม Sub Set ภายใต้แต่ละ BU
+    // การคำนวณ Vacant ยังคงรวม rq26_on_process จาก ULHANA จริง จึงไม่กระทบยอด RQ26
+    // ใช้ Sub เป็น fallback เฉพาะกรณี Sub Set ว่าง เพื่อไม่ให้ ULHANA หลุดจากรายงาน
+    const subSet=String(org.sub_set||org.sub||org.function_name||org.ulhana_name||org.ulhana_key||'ไม่ระบุ Sub Set').trim()||'ไม่ระบุ Sub Set';
     if(!grouped.has(bu))grouped.set(bu,new Map());
-    const subMap=grouped.get(bu);
-    if(!subMap.has(sub))subMap.set(sub,[]);
-    subMap.get(sub).push(org);
+    const subSetMap=grouped.get(bu);
+    if(!subSetMap.has(subSet))subSetMap.set(subSet,[]);
+    subSetMap.get(subSet).push(org);
   });
 
   return [...grouped.entries()]
     .sort(([a],[b])=>compareOrgText(a,b))
-    .map(([bu,subMap])=>({
+    .map(([bu,subSetMap])=>({
       bu,
-      subsets:[...subMap.entries()]
+      subsets:[...subSetMap.entries()]
         .sort(([a],[b])=>compareOrgText(a,b))
         .map(([label,items])=>({label,orgs:items}))
     }));
@@ -6327,7 +6328,7 @@ function buildExcelSummarySheet(workbook,orgs,summaryByOrg,hireByOrg,scopeLabel)
     worksheet.getCell(rowNumber,2).value=label;
 
     if(formulaRows.length){
-      // Total BU / Total CPRetailink รวมจากแถว Sub ที่อยู่ภายใต้ BU นั้น
+      // Total BU / Total CPRetailink รวมจากแถว Sub Set ที่อยู่ภายใต้ BU นั้น
       // C = BG2026, D = ACT26, F = Vacant (RQ26 On Process), H = รับเพิ่มปี 2027
       const summed=(column,result)=>{
         const references=formulaRows.map(row=>`${column}${row}`);
