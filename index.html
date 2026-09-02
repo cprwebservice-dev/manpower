@@ -1108,7 +1108,178 @@
       color: #ffffff !important;
     }
 
-  </style>
+  
+    /* Summary 2027 */
+    .summary2027-kpi {
+      position: relative;
+      overflow: hidden;
+      border-radius: 1.25rem;
+      border: 1px solid rgba(148,163,184,.18);
+      background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(248,250,252,.98));
+      padding: 1rem 1rem 1.05rem;
+      box-shadow: 0 12px 32px rgba(15,23,42,.06);
+    }
+    .summary2027-kpi::after{
+      content:"";
+      position:absolute;
+      right:-18px; top:-18px;
+      width:70px; height:70px;
+      border-radius:999px;
+      background: rgba(59,130,246,.08);
+    }
+    .summary2027-kpi .icon-shell{
+      display:grid; place-items:center;
+      width:2.6rem; height:2.6rem;
+      border-radius:1rem;
+      color:#fff;
+      box-shadow:0 10px 22px rgba(59,130,246,.18);
+    }
+    .summary2027-table-wrap{ overflow:hidden; }
+    .summary2027-scroll{
+      overflow:auto;
+      border:1px solid rgba(148,163,184,.18);
+      border-radius:1.25rem;
+      background:#fff;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.24);
+    }
+    .summary2027-table{
+      min-width: 1380px;
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      color: #0f172a;
+      font-size: .9rem;
+    }
+    .summary2027-table th,
+    .summary2027-table td{
+      border-right:1px solid #cbd5e1;
+      border-bottom:1px solid #cbd5e1;
+      padding:.72rem .8rem;
+      vertical-align:middle;
+    }
+    .summary2027-table thead th{
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      text-align:center;
+      font-weight:800;
+      color:#0f172a;
+      background:#fff;
+    }
+    .summary2027-table thead tr:first-child th{
+      font-size:1.05rem;
+      border-bottom:0;
+      background:#f8fafc;
+    }
+    .summary2027-table thead .head-no{ background:#8db2ef; }
+    .summary2027-table thead .head-bu{ background:#88a9df; }
+    .summary2027-table thead .head-bg26{ background:#a9d6b2; }
+    .summary2027-table thead .head-act26{ background:#bccc8f; }
+    .summary2027-table thead .head-vacant{ background:#b9dfe3; }
+    .summary2027-table thead .head-change-group{ background:#ebb48d; }
+    .summary2027-table thead .head-bg27-group{ background:#ef9f57; }
+    .summary2027-table thead tr:nth-child(2) th{
+      font-size:.98rem;
+    }
+    .summary2027-table thead tr:nth-child(3) th{
+      font-size:.86rem;
+    }
+    .summary2027-table .sticky-col{
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      background: inherit;
+    }
+    .summary2027-table .sticky-col-2{
+      position: sticky;
+      left: 64px;
+      z-index: 1;
+      background: inherit;
+    }
+    .summary2027-table thead .sticky-col,
+    .summary2027-table thead .sticky-col-2{
+      z-index: 3;
+    }
+    .summary2027-table tbody tr.detail-row td{
+      background:#edf3fb;
+    }
+    .summary2027-table tbody tr.detail-row:hover td{
+      background:#e3edf9;
+    }
+    .summary2027-table tbody tr.total-row td{
+      font-weight:800;
+      background:#d8e5f6;
+    }
+    .summary2027-table tbody tr.grand-total-row td{
+      font-weight:900;
+      color:#082f49;
+      background:linear-gradient(90deg,#94c5dd 0%,#9ed0df 100%);
+    }
+    .summary2027-table tbody td.label-cell{
+      min-width:220px;
+      font-weight:700;
+      color:#0f172a;
+    }
+    .summary2027-table tbody td.no-cell{
+      min-width:64px;
+      text-align:center;
+      font-weight:800;
+      color:#334155;
+    }
+    .summary2027-table tbody td.num{
+      text-align:center;
+      font-variant-numeric: tabular-nums;
+      white-space:nowrap;
+    }
+    .summary2027-table tbody td.num.zero{
+      color:#64748b;
+    }
+    .summary2027-table .row-total-label{
+      color:#0f172a;
+    }
+    .summary2027-table .negative{
+      color:#b91c1c;
+    }
+    .summary2027-table .positive{
+      color:#0f766e;
+    }
+    [data-theme="dark"] .summary2027-kpi{
+      background: linear-gradient(180deg, rgba(15,23,42,.96), rgba(15,23,42,.9));
+      border-color: rgba(100,116,139,.45);
+      box-shadow: 0 20px 36px rgba(2,6,23,.35);
+    }
+    [data-theme="dark"] .summary2027-kpi::after{ background: rgba(59,130,246,.12); }
+    [data-theme="dark"] .summary2027-scroll{ background:#0f172a; border-color:rgba(100,116,139,.45); }
+    [data-theme="dark"] .summary2027-table{ color:#e2e8f0; }
+    [data-theme="dark"] .summary2027-table th,
+    [data-theme="dark"] .summary2027-table td{
+      border-right-color: rgba(100,116,139,.45);
+      border-bottom-color: rgba(100,116,139,.45);
+    }
+    [data-theme="dark"] .summary2027-table thead tr:first-child th{ background:#111827; color:#e2e8f0; }
+    [data-theme="dark"] .summary2027-table thead .head-no{ background:#31588f; color:#fff; }
+    [data-theme="dark"] .summary2027-table thead .head-bu{ background:#456594; color:#fff; }
+    [data-theme="dark"] .summary2027-table thead .head-bg26{ background:#35624b; color:#f8fafc; }
+    [data-theme="dark"] .summary2027-table thead .head-act26{ background:#5f6c35; color:#f8fafc; }
+    [data-theme="dark"] .summary2027-table thead .head-vacant{ background:#376570; color:#f8fafc; }
+    [data-theme="dark"] .summary2027-table thead .head-change-group{ background:#8c5e3d; color:#fff; }
+    [data-theme="dark"] .summary2027-table thead .head-bg27-group{ background:#9a5a1f; color:#fff; }
+    [data-theme="dark"] .summary2027-table tbody tr.detail-row td{ background:#162235; }
+    [data-theme="dark"] .summary2027-table tbody tr.detail-row:hover td{ background:#1b2b43; }
+    [data-theme="dark"] .summary2027-table tbody tr.total-row td{ background:#22344d; color:#f8fafc; }
+    [data-theme="dark"] .summary2027-table tbody tr.grand-total-row td{
+      background: linear-gradient(90deg,#1f4e63 0%,#2b5f72 100%);
+      color:#f8fafc;
+    }
+    [data-theme="dark"] .summary2027-table tbody td.label-cell,
+    [data-theme="dark"] .summary2027-table tbody td.no-cell,
+    [data-theme="dark"] .summary2027-table .row-total-label{ color:#f8fafc; }
+    @media (max-width: 768px){
+      .summary2027-table{ min-width: 1240px; }
+      .summary2027-table tbody td.label-cell{ min-width:180px; }
+    }
+
+</style>
 </head>
 <body class="min-h-screen">
   <div id="toastHost" class="fixed right-4 top-4 z-[100] grid gap-2"></div>
@@ -1223,6 +1394,7 @@ const dbClient = window.supabase.createClient(SB_URL, SB_PUBLISHABLE_KEY);</pre>
         <nav class="ml-2 hidden items-center gap-1 lg:flex">
           <button data-tab="actions" class="nav-btn rounded-lg px-4 py-2 text-sm font-semibold"><i data-lucide="list-checks" class="mr-1 inline h-4 w-4"></i>รายการที่ต้องดำเนินการ</button>
           <button data-tab="planning" class="nav-btn rounded-lg px-4 py-2 text-sm font-semibold"><i data-lucide="table-2" class="mr-1 inline h-4 w-4"></i>แผนกำลังคน</button>
+          <button data-tab="summary2027" class="nav-btn rounded-lg px-4 py-2 text-sm font-semibold"><i data-lucide="table-properties" class="mr-1 inline h-4 w-4"></i>สรุปแผนอัตรากำลัง 2027</button>
           <button data-tab="users" data-super-admin-only class="nav-btn hidden rounded-lg px-4 py-2 text-sm font-semibold"><i data-lucide="user-cog" class="mr-1 inline h-4 w-4"></i>ผู้ใช้งานและสิทธิ์</button>
         </nav>
         <div class="ml-auto flex items-center gap-2">
@@ -1237,6 +1409,7 @@ const dbClient = window.supabase.createClient(SB_URL, SB_PUBLISHABLE_KEY);</pre>
       <div class="flex overflow-x-auto border-t border-white/10 px-2 lg:hidden">
         <button data-tab="actions" class="nav-btn min-w-max px-4 py-3 text-sm font-semibold">รายการที่ต้องดำเนินการ</button>
         <button data-tab="planning" class="nav-btn min-w-max px-4 py-3 text-sm font-semibold">แผนกำลังคน</button>
+        <button data-tab="summary2027" class="nav-btn min-w-max px-4 py-3 text-sm font-semibold">สรุปแผนอัตรากำลัง 2027</button>
         <button data-tab="users" data-super-admin-only class="nav-btn hidden min-w-max px-4 py-3 text-sm font-semibold">ผู้ใช้งานและสิทธิ์</button>
       </div>
     </header>
@@ -1436,6 +1609,56 @@ const dbClient = window.supabase.createClient(SB_URL, SB_PUBLISHABLE_KEY);</pre>
     </section>
 
 
+
+      <!-- SUMMARY 2027 TAB -->
+      <section id="tab-summary2027" class="tab-panel hidden">
+        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#0a3c74] via-[#0f5ea8] to-[#f59e0b] p-5 text-white shadow-xl sm:p-7">
+          <div class="pointer-events-none absolute -right-10 -top-16 h-48 w-48 rounded-full bg-white/10"></div>
+          <div class="pointer-events-none absolute -bottom-20 left-24 h-40 w-40 rounded-full bg-cyan-300/10"></div>
+          <div class="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div class="flex items-center gap-4">
+              <div class="grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-white/20 bg-white/15 shadow-inner backdrop-blur-sm">
+                <i data-lucide="table-properties" class="h-8 w-8"></i>
+              </div>
+              <div>
+                <h1 class="text-2xl font-extrabold sm:text-3xl">สรุปแผนอัตรากำลังคนประจำปี 2027</h1>
+                <p class="mt-1 text-sm text-blue-100">ตารางภาพรวมแบบผู้บริหาร แสดง BG2026, ACT26, Vacant, Total เพิ่ม/ลด อัตรา และ BG2027 H/C จาก ACT2026</p>
+              </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <span id="summary2027ScopeBadge" class="rounded-full border border-white/20 bg-white/12 px-3 py-1.5 text-xs font-bold text-white/95">–</span>
+              <button id="refreshSummary2027Btn" type="button" class="inline-flex h-11 items-center gap-2 rounded-xl border border-white/20 bg-white/12 px-4 text-sm font-bold text-white transition hover:bg-white/20">
+                <i data-lucide="refresh-cw" class="h-4 w-4"></i>รีเฟรชตาราง
+              </button>
+              <button type="button" onclick="openExportExcelModal()" class="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-4 text-sm font-extrabold text-blue-800 shadow-sm transition hover:bg-blue-50">
+                <i data-lucide="file-spreadsheet" class="h-4 w-4"></i>Export Excel
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="summary2027Kpis" class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5"></div>
+
+        <div class="card mt-4 overflow-hidden">
+          <div class="flex flex-col gap-3 border-b border-slate-200 bg-gradient-to-r from-slate-50 via-blue-50/70 to-orange-50/60 p-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <div class="flex items-center gap-2 text-lg font-extrabold text-slate-900">
+                <i data-lucide="layout-list" class="h-5 w-5 text-blue-600"></i>
+                ตารางสรุปตาม BU และ Sub Set
+              </div>
+              <p id="summary2027Subtitle" class="mt-1 text-sm text-slate-500">ใช้ตัวกรองหน่วยงานระดับด้านเดียวกับแท็บแผนกำลังคน และแสดงผลเฉพาะข้อมูลตามสิทธิ์</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <span id="summary2027AsOf" class="rounded-full border border-blue-100 bg-white px-3 py-1 text-xs font-bold text-slate-600 shadow-sm">As of Date : –</span>
+              <span id="summary2027ResultCount" class="rounded-full border border-orange-100 bg-orange-50 px-3 py-1 text-xs font-bold text-orange-700 shadow-sm">–</span>
+            </div>
+          </div>
+          <div id="summary2027TableWrap" class="summary2027-table-wrap p-3 sm:p-4">
+            <div class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center text-sm text-slate-500">กำลังเตรียมข้อมูลสรุปแผนอัตรากำลัง...</div>
+          </div>
+        </div>
+      </section>
+
       <!-- USER ACCESS & SCOPE TAB -->
       <section id="tab-users" class="tab-panel hidden">
         <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#082e61] via-[#0b447f] to-[#4f46e5] p-5 text-white shadow-xl sm:p-7">
@@ -1601,6 +1824,7 @@ const state = {
   sectionCollapsed:{ulPromote:true,dashboard:true,spotlight:true,workflow:false},
   treeOpenOffices:new Set(), treeOpenGroups:new Set(),
   passwordRecoveryMode:false, appStarted:false,
+  summary2027:{loadedKey:'',loading:false,summaryByOrg:new Map(),hireByOrg:new Map(),loadedAt:null},
   userAdmin:{profiles:[],scopes:[],orgUnits:[],loaded:false,view:'users',scopeDraft:null}
 };
 
@@ -2360,7 +2584,7 @@ function applyPlanningGroupFilter(){
 }
 
 function switchTab(tab){
-  const allowed=['actions','planning'];
+  const allowed=['actions','planning','summary2027'];
   if(canManageUsers())allowed.push('users');
   if(!allowed.includes(tab))tab='actions';
   state.activeTab=tab;
@@ -2371,6 +2595,7 @@ function switchTab(tab){
   });
   if(tab==='actions') renderActions();
   if(tab==='planning') loadPlanning(state.currentUlId);
+  if(tab==='summary2027') loadSummary2027Tab();
   if(tab==='users') loadUserManagement();
   if(tab==='files') loadFiles();
   refreshIcons();
@@ -6198,6 +6423,232 @@ function applySummaryCellBorder(cell,color='FF1F2937'){
   };
 }
 
+
+function summary2027ScopeInfo(){
+  const orgs=planningScopedOrgUnits();
+  const names=selectedPlanningGroupNames();
+  const label=!names.length
+    ? `ภาพรวมทั้งหมด · ${fmt(orgs.length)} ULHANA`
+    : names.length===1
+      ? `${names[0]} · ${fmt(orgs.length)} ULHANA`
+      : `${fmt(names.length)} ด้าน · ${fmt(orgs.length)} ULHANA`;
+  return {orgs,label,key:orgs.map(org=>String(org.id)).sort().join('|')};
+}
+
+function summary2027DisplayNumber(value,{dashWhenZero=false}={}){
+  const number=Number(value)||0;
+  if(dashWhenZero&&number===0)return '–';
+  return fmt(number);
+}
+
+function summary2027DisplayPct(value){
+  const number=Number(value)||0;
+  return `${(number*100).toFixed(2)}%`;
+}
+
+function summary2027MetricClass(value){
+  const number=Number(value)||0;
+  if(number<0)return 'negative';
+  if(number>0)return 'positive';
+  return 'zero';
+}
+
+function summary2027KpiCard({icon,title,value,subtext,gradient='from-blue-600 to-cyan-500'}){
+  return `<div class="summary2027-kpi">
+    <div class="flex items-start justify-between gap-3">
+      <div>
+        <div class="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">${esc(title)}</div>
+        <div class="mt-2 text-3xl font-extrabold tracking-tight text-slate-900">${esc(value)}</div>
+        <div class="mt-1 text-sm font-semibold text-slate-500">${esc(subtext)}</div>
+      </div>
+      <div class="icon-shell bg-gradient-to-br ${gradient}">
+        <i data-lucide="${esc(icon)}" class="h-5 w-5"></i>
+      </div>
+    </div>
+  </div>`;
+}
+
+function buildSummary2027Rows(orgs,summaryByOrg,hireByOrg){
+  const groups=summaryExportGroups(orgs);
+  const rows=[];
+  groups.forEach((group,groupIndex)=>{
+    const groupOrgs=[];
+    group.subsets.forEach((subset,subsetIndex)=>{
+      const values=summaryExportValues(subset.orgs,summaryByOrg,hireByOrg);
+      rows.push({
+        type:'detail',
+        no:subsetIndex===0?String(groupIndex+1):'',
+        label:subset.label,
+        values
+      });
+      groupOrgs.push(...subset.orgs);
+    });
+
+    rows.push({
+      type:'total',
+      no:'',
+      label:`Total ${group.bu}`,
+      values:summaryExportValues(groupOrgs,summaryByOrg,hireByOrg)
+    });
+  });
+
+  rows.push({
+    type:'grand-total',
+    no:'',
+    label:'Total CPRetailink',
+    values:summaryExportValues(orgs,summaryByOrg,hireByOrg)
+  });
+
+  return rows;
+}
+
+function renderSummary2027Loading(){
+  const host=$('summary2027TableWrap');
+  if(host){
+    host.innerHTML=`<div class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center text-sm text-slate-500">
+      <div class="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-blue-50 text-blue-600"><i data-lucide="loader-circle" class="h-6 w-6 animate-spin"></i></div>
+      กำลังโหลดข้อมูลสรุปแผนอัตรากำลัง...
+    </div>`;
+  }
+  if($('summary2027Kpis'))$('summary2027Kpis').innerHTML='';
+  if($('summary2027ResultCount'))$('summary2027ResultCount').textContent='กำลังโหลด...';
+  refreshIcons();
+}
+
+function renderSummary2027Tab(){
+  const scope=summary2027ScopeInfo();
+  const orgs=scope.orgs;
+  const summaryByOrg=state.summary2027.summaryByOrg||new Map();
+  const hireByOrg=state.summary2027.hireByOrg||new Map();
+  const rows=buildSummary2027Rows(orgs,summaryByOrg,hireByOrg);
+  const grandTotal=rows[rows.length-1]?.values||summaryExportValues(orgs,summaryByOrg,hireByOrg);
+
+  if($('summary2027ScopeBadge'))$('summary2027ScopeBadge').textContent=scope.label;
+  if($('summary2027Subtitle'))$('summary2027Subtitle').textContent=`ใช้ตัวกรองหน่วยงานระดับด้านเดียวกับแท็บแผนกำลังคน · แสดง ${fmt(orgs.length)} ULHANA ตามสิทธิ์`;
+  if($('summary2027AsOf'))$('summary2027AsOf').textContent=`As of Date : ${new Date().toLocaleDateString('en-GB')}`;
+  if($('summary2027ResultCount'))$('summary2027ResultCount').textContent=`${fmt(rows.length-1)} แถวรายละเอียด/รวม`;
+  if($('summary2027Kpis')){
+    $('summary2027Kpis').innerHTML=[
+      summary2027KpiCard({icon:'briefcase-business',title:'BG2026',value:fmt(grandTotal.bg26),subtext:'Total H/C',gradient:'from-emerald-600 to-lime-500'}),
+      summary2027KpiCard({icon:'users-round',title:'ACT26',value:fmt(grandTotal.act26),subtext:`${summary2027DisplayPct(grandTotal.actPct)} ของ BG2026`,gradient:'from-lime-600 to-amber-500'}),
+      summary2027KpiCard({icon:'search-x',title:'Vacant',value:fmt(grandTotal.vacant),subtext:`${summary2027DisplayPct(grandTotal.vacantPct)} ของ BG2026`,gradient:'from-cyan-600 to-sky-500'}),
+      summary2027KpiCard({icon:'arrow-up-right',title:'เพิ่ม/ลด อัตรา',value:fmt(grandTotal.bg27Change),subtext:`${summary2027DisplayPct(grandTotal.bg27ChangePct)} ของ BG2026`,gradient:'from-orange-500 to-amber-400'}),
+      summary2027KpiCard({icon:'target',title:'BG2027 H/C จาก ACT2026',value:fmt(grandTotal.bg27),subtext:`เติบโต ${summary2027DisplayPct(grandTotal.bg27Pct)}`,gradient:'from-orange-600 to-rose-500'})
+    ].join('');
+  }
+
+  const tableRows=rows.map(row=>{
+    const isDetail=row.type==='detail';
+    const isTotal=row.type==='total';
+    const rowClass=isDetail?'detail-row':isTotal?'total-row':'grand-total-row';
+    const labelClass=isDetail?'label-cell':'label-cell row-total-label';
+    const v=row.values||{};
+    const cells=[
+      summary2027DisplayNumber(v.bg26),
+      summary2027DisplayNumber(v.act26),
+      summary2027DisplayPct(v.actPct),
+      summary2027DisplayNumber(v.vacant,{dashWhenZero:!isTotal && row.type!=='grand-total'}),
+      summary2027DisplayPct(v.vacantPct),
+      summary2027DisplayNumber(v.bg27Change,{dashWhenZero:!isTotal && row.type!=='grand-total'}),
+      summary2027DisplayPct(v.bg27ChangePct),
+      summary2027DisplayNumber(v.bg27),
+      summary2027DisplayPct(v.bg27Pct)
+    ];
+    return `<tr class="${rowClass}">
+      <td class="sticky-col no-cell">${esc(row.no||'')}</td>
+      <td class="sticky-col-2 ${labelClass}">${esc(row.label||'-')}</td>
+      <td class="num ${summary2027MetricClass(v.bg26)}">${cells[0]}</td>
+      <td class="num ${summary2027MetricClass(v.act26)}">${cells[1]}</td>
+      <td class="num ${summary2027MetricClass(v.actPct)}">${cells[2]}</td>
+      <td class="num ${summary2027MetricClass(v.vacant)}">${cells[3]}</td>
+      <td class="num ${summary2027MetricClass(v.vacantPct)}">${cells[4]}</td>
+      <td class="num ${summary2027MetricClass(v.bg27Change)}">${cells[5]}</td>
+      <td class="num ${summary2027MetricClass(v.bg27ChangePct)}">${cells[6]}</td>
+      <td class="num ${summary2027MetricClass(v.bg27)}">${cells[7]}</td>
+      <td class="num ${summary2027MetricClass(v.bg27Pct)}">${cells[8]}</td>
+    </tr>`;
+  }).join('');
+
+  const host=$('summary2027TableWrap');
+  if(host){
+    host.innerHTML=`<div class="summary2027-scroll scrollbar-thin">
+      <table class="summary2027-table">
+        <thead>
+          <tr>
+            <th colspan="11">สรุปแผนอัตรากำลังคนประจำปี 2027</th>
+          </tr>
+          <tr>
+            <th rowspan="2" class="sticky-col head-no">No</th>
+            <th rowspan="2" class="sticky-col-2 head-bu">BU</th>
+            <th colspan="1" class="head-bg26">BG2026</th>
+            <th colspan="2" class="head-act26">ACT26</th>
+            <th colspan="2" class="head-vacant">Vacant (RQ26 On Process)</th>
+            <th colspan="2" class="head-change-group">Total เพิ่ม/ลด อัตรา</th>
+            <th colspan="2" class="head-bg27-group">BG2027 H/C จาก ACT2026</th>
+          </tr>
+          <tr>
+            <th class="head-bg26">Total H/C</th>
+            <th class="head-act26">Total H/C</th>
+            <th class="head-act26">% ACT H/C</th>
+            <th class="head-vacant">Total H/C</th>
+            <th class="head-vacant">% Vacant</th>
+            <th class="head-change-group">Total H/C</th>
+            <th class="head-change-group">% H/C</th>
+            <th class="head-bg27-group">Total H/C</th>
+            <th class="head-bg27-group">% H/C</th>
+          </tr>
+        </thead>
+        <tbody>${tableRows}</tbody>
+      </table>
+    </div>`;
+  }
+  refreshIcons();
+}
+
+async function loadSummary2027Tab(force=false){
+  const scope=summary2027ScopeInfo();
+  const orgIds=scope.orgs.map(org=>org.id).filter(Boolean);
+  if($('summary2027ScopeBadge'))$('summary2027ScopeBadge').textContent=scope.label;
+  if(!orgIds.length){
+    if($('summary2027TableWrap'))$('summary2027TableWrap').innerHTML=`<div class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center text-sm text-slate-500">ไม่พบ ULHANA ตามขอบเขตสิทธิ์หรือหน่วยงานระดับด้านที่เลือก</div>`;
+    if($('summary2027ResultCount'))$('summary2027ResultCount').textContent='0 แถว';
+    if($('summary2027Kpis'))$('summary2027Kpis').innerHTML='';
+    refreshIcons();
+    return;
+  }
+
+  const key=scope.key;
+  if(!force && state.summary2027.loadedKey===key && state.summary2027.summaryByOrg?.size){
+    renderSummary2027Tab();
+    return;
+  }
+
+  state.summary2027.loading=true;
+  renderSummary2027Loading();
+
+  try{
+    const [levelRows,hireRows]=await Promise.all([
+      fetchExcelLevelRows(orgIds),
+      fetchExcelHire2027Rows(orgIds)
+    ]);
+
+    state.summary2027={
+      loadedKey:key,
+      loading:false,
+      summaryByOrg:groupLevelRowsByOrg(levelRows),
+      hireByOrg:groupHire2027RowsByOrg(hireRows),
+      loadedAt:new Date().toISOString()
+    };
+
+    renderSummary2027Tab();
+  }catch(error){
+    state.summary2027.loading=false;
+    if($('summary2027TableWrap'))$('summary2027TableWrap').innerHTML=`<div class="rounded-2xl border border-red-200 bg-red-50 p-8 text-sm font-semibold text-red-700">โหลดข้อมูลตารางสรุปไม่สำเร็จ: ${esc(errorText(error))}</div>`;
+    if($('summary2027ResultCount'))$('summary2027ResultCount').textContent='เกิดข้อผิดพลาด';
+    refreshIcons();
+  }
+}
+
 function buildExcelSummarySheet(workbook,orgs,summaryByOrg,hireByOrg,scopeLabel){
   const worksheet=workbook.addWorksheet('Summary',{
     properties:{tabColor:{argb:'FF1269DF'}},
@@ -7677,7 +8128,7 @@ $('expandAllBtn').onclick=()=>{
 };
 $('refreshActionsBtn').onclick=async()=>{showLoading(true);await Promise.all([loadDashboard(),loadWorkflows()]);showLoading(false);renderActions()};
 const orgGroupFilter=$('orgGroupFilter');if(orgGroupFilter)orgGroupFilter.onchange=()=>{};$('ulhanaSelect').onchange=e=>loadPlanning(e.target.value);$('refreshPlanningBtn').onclick=()=>loadPlanning(state.currentUlId);$('rebuildBtn').onclick=rebuildSummary;const toggle2026DetailsButton=$('toggle2026DetailsBtn');if(toggle2026DetailsButton)toggle2026DetailsButton.onclick=toggle2026DetailRows;const exportExcelButton=$('exportExcelBtn');if(exportExcelButton)exportExcelButton.onclick=openExportExcelModal;const exportCurrentEmployeesButton=$('exportCurrentEmployeesBtn');if(exportCurrentEmployeesButton)exportCurrentEmployeesButton.onclick=runCurrentEmployeesExport;const changeLogButton=$('changeLogBtn');if(changeLogButton)changeLogButton.onclick=openChangeLogModal;const snapshotButton=$('snapshotBtn');if(snapshotButton)snapshotButton.onclick=openSnapshotModal;
-$('fileUlhanaSelect').onchange=loadFiles;$('uploadBtn').onclick=uploadFile;
+$('fileUlhanaSelect').onchange=loadFiles;$('uploadBtn').onclick=uploadFile;const refreshSummary2027Btn=$('refreshSummary2027Btn');if(refreshSummary2027Btn)refreshSummary2027Btn.onclick=()=>loadSummary2027Tab(true);
 
 if(window.matchMedia){
   const themeMedia=window.matchMedia('(prefers-color-scheme: dark)');
