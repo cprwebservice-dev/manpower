@@ -6136,7 +6136,8 @@ function summaryExportValues(orgs,summaryByOrg,hireByOrg){
   // Mapping Sheet Summary ให้ยึดค่าจาก v_workforce_level_summary เดียวกับหน้าจอแผนกำลังคน
   // C · BG2026 = bg26 โดยตรง
   // D · ACT26   = act26 + rq26_waiting เช่นเดียวกับแถว ACT26 บนหน้าจอ
-  // F · Vacant  = rq26_on_process โดยตรง (ไม่รวมผล Move26 In/Out)
+  // F · Vacant  = rq26_on_process โดยตรง
+  //              และหลัง Backend Fix จะเท่ากับ BG2026 - ACT26 เสมอ
   // H · Total เพิ่ม/ลด อัตรา = รับคนเพิ่มปี 2027 จาก hire_plans โดยตรง
   // J · BG2027 H/C = ACT26 + Total เพิ่ม/ลด อัตรา
   // K · % H/C = (BG2027 H/C - ACT26) / ACT26
@@ -6348,7 +6349,8 @@ function buildExcelSummarySheet(workbook,orgs,summaryByOrg,hireByOrg,scopeLabel)
       worksheet.getCell(rowNumber,8).value=values.bg27Change;
     }
 
-    // Vacant = rq26_on_process โดยตรง; Movement ปี 2026 ไม่ถูกนำมาปะปนใน Vacant
+    // Vacant ใช้ rq26_on_process โดยตรง
+    // หลังรัน Backend Fix: BG2026 - ACT26 จะเท่ากับ Vacant เสมอ
     worksheet.getCell(rowNumber,5).value={formula:`IFERROR(D${rowNumber}/C${rowNumber},0)`,result:values.actPct};
     worksheet.getCell(rowNumber,7).value={formula:`IFERROR(F${rowNumber}/C${rowNumber},0)`,result:values.vacantPct};
     worksheet.getCell(rowNumber,9).value={formula:`IFERROR(H${rowNumber}/C${rowNumber},0)`,result:values.bg27ChangePct};
