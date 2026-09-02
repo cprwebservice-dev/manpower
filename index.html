@@ -1176,8 +1176,9 @@
     .summary2027-table thead .head-bg26{ background:#a9d6b2; }
     .summary2027-table thead .head-act26{ background:#bccc8f; }
     .summary2027-table thead .head-vacant{ background:#b9dfe3; }
-    .summary2027-table thead .head-change-group{ background:#ebb48d; }
-    .summary2027-table thead .head-bg27-group{ background:#ef9f57; }
+    .summary2027-table thead .head-bg27-top{ background:#ee8580; }
+    .summary2027-table thead .head-change-group{ background:#f2b887; }
+    .summary2027-table thead .head-bg27-group{ background:#ffa45e; }
     .summary2027-table thead tr:nth-child(2) th{
       font-size:.98rem;
     }
@@ -1262,6 +1263,7 @@
     [data-theme="dark"] .summary2027-table thead .head-bg26{ background:#35624b; color:#f8fafc; }
     [data-theme="dark"] .summary2027-table thead .head-act26{ background:#5f6c35; color:#f8fafc; }
     [data-theme="dark"] .summary2027-table thead .head-vacant{ background:#376570; color:#f8fafc; }
+    [data-theme="dark"] .summary2027-table thead .head-bg27-top{ background:#8e4e4e; color:#fff; }
     [data-theme="dark"] .summary2027-table thead .head-change-group{ background:#8c5e3d; color:#fff; }
     [data-theme="dark"] .summary2027-table thead .head-bg27-group{ background:#9a5a1f; color:#fff; }
     [data-theme="dark"] .summary2027-table tbody tr.detail-row td{ background:#162235; }
@@ -1277,6 +1279,143 @@
     @media (max-width: 768px){
       .summary2027-table{ min-width: 1240px; }
       .summary2027-table tbody td.label-cell{ min-width:180px; }
+    }
+
+
+    .summary2027-vacant-btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:.3rem;
+      min-width:2.4rem;
+      padding:.2rem .45rem;
+      border-radius:.55rem;
+      font:inherit;
+      font-weight:800;
+      color:#075985;
+      background:rgba(255,255,255,.5);
+      border:1px solid transparent;
+      cursor:pointer;
+      transition:all .16s ease;
+    }
+    .summary2027-vacant-btn:hover{
+      border-color:#67c6d5;
+      background:#fff;
+      box-shadow:0 4px 12px rgba(14,116,144,.14);
+      transform:translateY(-1px);
+    }
+    .summary2027-vacant-btn:focus-visible{
+      outline:none;
+      border-color:#0284c7;
+      box-shadow:0 0 0 3px rgba(14,165,233,.18);
+    }
+    .summary2027-vacant-hint{
+      width:.35rem;
+      height:.35rem;
+      border-radius:999px;
+      background:#0891b2;
+      opacity:.8;
+    }
+    .summary2027-vacant-popover{
+      position:fixed;
+      z-index:180;
+      width:min(470px,calc(100vw - 24px));
+      max-height:min(460px,calc(100vh - 32px));
+      overflow:hidden;
+      border:1px solid #cbd5e1;
+      border-radius:1rem;
+      background:#fff;
+      box-shadow:0 24px 60px rgba(15,23,42,.24);
+      color:#0f172a;
+    }
+    .summary2027-vacant-popover .popover-head{
+      display:flex;
+      align-items:flex-start;
+      gap:.75rem;
+      padding:1rem;
+      border-bottom:1px solid #e2e8f0;
+      background:linear-gradient(90deg,#ecfeff 0%,#eff6ff 100%);
+    }
+    .summary2027-vacant-popover .popover-icon{
+      display:grid;
+      place-items:center;
+      flex:0 0 auto;
+      width:2.4rem;
+      height:2.4rem;
+      border-radius:.8rem;
+      background:#0891b2;
+      color:#fff;
+    }
+    .summary2027-vacant-popover .popover-body{
+      max-height:350px;
+      overflow:auto;
+      padding:.65rem;
+    }
+    .summary2027-vacant-popover .vacant-detail-row{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto;
+      gap:.75rem;
+      padding:.7rem .75rem;
+      border-bottom:1px solid #edf2f7;
+      border-radius:.65rem;
+    }
+    .summary2027-vacant-popover .vacant-detail-row:hover{ background:#f8fafc; }
+    .summary2027-vacant-popover .vacant-unit{
+      font-size:.78rem;
+      font-weight:800;
+      color:#2563eb;
+    }
+    .summary2027-vacant-popover .vacant-position{
+      margin-top:.15rem;
+      font-size:.86rem;
+      font-weight:700;
+      color:#334155;
+    }
+    .summary2027-vacant-popover .vacant-level{
+      margin-top:.15rem;
+      font-size:.7rem;
+      color:#94a3b8;
+    }
+    .summary2027-vacant-popover .vacant-qty{
+      align-self:center;
+      min-width:3rem;
+      border-radius:.75rem;
+      background:#cffafe;
+      padding:.35rem .55rem;
+      text-align:center;
+      font-size:.9rem;
+      font-weight:900;
+      color:#0e7490;
+    }
+    [data-theme="dark"] .summary2027-vacant-btn{
+      color:#67e8f9;
+      background:rgba(15,23,42,.45);
+    }
+    [data-theme="dark"] .summary2027-vacant-btn:hover{
+      border-color:#0e7490;
+      background:#172033;
+      box-shadow:0 4px 12px rgba(0,0,0,.24);
+    }
+    [data-theme="dark"] .summary2027-vacant-popover{
+      border-color:#475569;
+      background:#0f172a;
+      color:#e2e8f0;
+      box-shadow:0 24px 60px rgba(0,0,0,.48);
+    }
+    [data-theme="dark"] .summary2027-vacant-popover .popover-head{
+      border-bottom-color:#334155;
+      background:linear-gradient(90deg,#153344 0%,#172554 100%);
+    }
+    [data-theme="dark"] .summary2027-vacant-popover .vacant-detail-row{
+      border-bottom-color:#243244;
+    }
+    [data-theme="dark"] .summary2027-vacant-popover .vacant-detail-row:hover{ background:#172033; }
+    [data-theme="dark"] .summary2027-vacant-popover .vacant-unit{ color:#7dd3fc; }
+    [data-theme="dark"] .summary2027-vacant-popover .vacant-position{ color:#e2e8f0; }
+    [data-theme="dark"] .summary2027-vacant-popover .vacant-level{ color:#94a3b8; }
+    [data-theme="dark"] .summary2027-vacant-popover .vacant-qty{
+      background:#164e63;
+      color:#cffafe;
     }
 
 </style>
@@ -1824,7 +1963,7 @@ const state = {
   sectionCollapsed:{ulPromote:true,dashboard:true,spotlight:true,workflow:false},
   treeOpenOffices:new Set(), treeOpenGroups:new Set(),
   passwordRecoveryMode:false, appStarted:false,
-  summary2027:{loadedKey:'',loading:false,summaryByOrg:new Map(),hireByOrg:new Map(),loadedAt:null},
+  summary2027:{loadedKey:'',loading:false,summaryByOrg:new Map(),hireByOrg:new Map(),positionRows:[],displayRows:[],loadedAt:null},
   userAdmin:{profiles:[],scopes:[],orgUnits:[],loaded:false,view:'users',scopeDraft:null}
 };
 
@@ -6479,6 +6618,7 @@ function buildSummary2027Rows(orgs,summaryByOrg,hireByOrg){
         type:'detail',
         no:subsetIndex===0?String(groupIndex+1):'',
         label:subset.label,
+        orgIds:subset.orgs.map(org=>org.id).filter(Boolean),
         values
       });
       groupOrgs.push(...subset.orgs);
@@ -6488,6 +6628,7 @@ function buildSummary2027Rows(orgs,summaryByOrg,hireByOrg){
       type:'total',
       no:'',
       label:`Total ${group.bu}`,
+      orgIds:groupOrgs.map(org=>org.id).filter(Boolean),
       values:summaryExportValues(groupOrgs,summaryByOrg,hireByOrg)
     });
   });
@@ -6496,13 +6637,133 @@ function buildSummary2027Rows(orgs,summaryByOrg,hireByOrg){
     type:'grand-total',
     no:'',
     label:'Total CPRetailink',
+    orgIds:(orgs||[]).map(org=>org.id).filter(Boolean),
     values:summaryExportValues(orgs,summaryByOrg,hireByOrg)
   });
 
   return rows;
 }
 
+
+function closeSummary2027VacantPopover(){
+  const existing=document.getElementById('summary2027VacantPopover');
+  if(existing)existing.remove();
+  document.removeEventListener('pointerdown',summary2027VacantOutsideHandler,true);
+  document.removeEventListener('keydown',summary2027VacantKeyHandler,true);
+}
+
+function summary2027VacantOutsideHandler(event){
+  const popover=document.getElementById('summary2027VacantPopover');
+  if(!popover)return;
+  if(popover.contains(event.target))return;
+  if(event.target.closest?.('.summary2027-vacant-btn'))return;
+  closeSummary2027VacantPopover();
+}
+
+function summary2027VacantKeyHandler(event){
+  if(event.key==='Escape')closeSummary2027VacantPopover();
+}
+
+function summary2027VacantDetailsForRow(row){
+  const allowedIds=new Set((row?.orgIds||[]).map(String));
+  const orgMap=new Map((state.orgUnits||[]).map(org=>[String(org.id),org]));
+  const grouped=new Map();
+
+  (state.summary2027.positionRows||[]).forEach(item=>{
+    if(!allowedIds.has(String(item.ulhana_id)))return;
+    const qty=Number(item.rq26_on_process)||0;
+    if(qty===0)return;
+
+    const org=orgMap.get(String(item.ulhana_id))||{};
+    const key=[
+      String(item.ulhana_id||''),
+      String(item.level||''),
+      String(item.position_name||'')
+    ].join('|||');
+
+    if(!grouped.has(key)){
+      grouped.set(key,{
+        ulhanaId:item.ulhana_id,
+        ulhanaKey:org.ulhana_key||'-',
+        ulhanaName:org.ulhana_name||'-',
+        level:item.level||'-',
+        position:item.position_name||'ไม่ระบุตำแหน่ง',
+        qty:0
+      });
+    }
+    grouped.get(key).qty+=qty;
+  });
+
+  return [...grouped.values()].sort((a,b)=>
+    String(a.ulhanaKey).localeCompare(String(b.ulhanaKey),'th',{numeric:true})
+    || String(a.level).localeCompare(String(b.level),'th',{numeric:true})
+    || String(a.position).localeCompare(String(b.position),'th')
+  );
+}
+
+function openSummary2027VacantPopover(event,rowIndex){
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+
+  const row=state.summary2027.displayRows?.[Number(rowIndex)];
+  if(!row)return;
+
+  closeSummary2027VacantPopover();
+
+  const details=summary2027VacantDetailsForRow(row);
+  const total=details.reduce((sum,item)=>sum+(Number(item.qty)||0),0);
+  const button=event.currentTarget;
+  const rect=button.getBoundingClientRect();
+
+  const popover=document.createElement('div');
+  popover.id='summary2027VacantPopover';
+  popover.className='summary2027-vacant-popover';
+  popover.innerHTML=`<div class="popover-head">
+    <div class="popover-icon"><i data-lucide="search-check" class="h-5 w-5"></i></div>
+    <div class="min-w-0 flex-1">
+      <div class="text-xs font-extrabold uppercase tracking-[.12em] text-cyan-700">Vacant Detail</div>
+      <div class="mt-0.5 truncate text-base font-extrabold" title="${esc(row.label||'')}">${esc(row.label||'')}</div>
+      <div class="mt-1 text-xs text-slate-500">RQ26 On Process · ${fmt(total)} อัตรา · ${fmt(details.length)} รายการหน่วยงาน/ตำแหน่ง</div>
+    </div>
+    <button type="button" onclick="closeSummary2027VacantPopover()" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-200/60 hover:text-slate-700" aria-label="ปิด"><i data-lucide="x" class="h-4 w-4"></i></button>
+  </div>
+  <div class="popover-body scrollbar-thin">
+    ${details.length?details.map(item=>`<div class="vacant-detail-row">
+      <div class="min-w-0">
+        <div class="vacant-unit">${esc(item.ulhanaKey)} · ${esc(item.ulhanaName)}</div>
+        <div class="vacant-position">${esc(item.position)}</div>
+        <div class="vacant-level">ระดับ ${esc(item.level)}</div>
+      </div>
+      <div class="vacant-qty">${item.qty>0?'+':''}${fmt(item.qty)}</div>
+    </div>`).join(''):`<div class="p-8 text-center text-sm text-slate-500">ไม่พบรายละเอียด Vacant ในขอบเขตนี้</div>`}
+  </div>`;
+
+  document.body.appendChild(popover);
+  refreshIcons();
+
+  const width=popover.offsetWidth;
+  const height=popover.offsetHeight;
+  const gap=8;
+  let left=rect.left+(rect.width/2)-(width/2);
+  left=Math.max(12,Math.min(left,window.innerWidth-width-12));
+
+  let top=rect.bottom+gap;
+  if(top+height>window.innerHeight-12){
+    top=rect.top-height-gap;
+  }
+  top=Math.max(12,Math.min(top,window.innerHeight-height-12));
+
+  popover.style.left=`${Math.round(left)}px`;
+  popover.style.top=`${Math.round(top)}px`;
+
+  window.setTimeout(()=>{
+    document.addEventListener('pointerdown',summary2027VacantOutsideHandler,true);
+    document.addEventListener('keydown',summary2027VacantKeyHandler,true);
+  },0);
+}
+
 function renderSummary2027Loading(){
+  closeSummary2027VacantPopover();
   const host=$('summary2027TableWrap');
   if(host){
     host.innerHTML=`<div class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center text-sm text-slate-500">
@@ -6516,11 +6777,13 @@ function renderSummary2027Loading(){
 }
 
 function renderSummary2027Tab(){
+  closeSummary2027VacantPopover();
   const scope=summary2027ScopeInfo();
   const orgs=scope.orgs;
   const summaryByOrg=state.summary2027.summaryByOrg||new Map();
   const hireByOrg=state.summary2027.hireByOrg||new Map();
   const rows=buildSummary2027Rows(orgs,summaryByOrg,hireByOrg);
+  state.summary2027.displayRows=rows;
   const grandTotal=rows[rows.length-1]?.values||summaryExportValues(orgs,summaryByOrg,hireByOrg);
 
   if($('summary2027ScopeBadge'))$('summary2027ScopeBadge').textContent=scope.label;
@@ -6537,7 +6800,7 @@ function renderSummary2027Tab(){
     ].join('');
   }
 
-  const tableRows=rows.map(row=>{
+  const tableRows=rows.map((row,rowIndex)=>{
     const isDetail=row.type==='detail';
     const isTotal=row.type==='total';
     const rowClass=isDetail?'detail-row':isTotal?'total-row':'grand-total-row';
@@ -6560,7 +6823,9 @@ function renderSummary2027Tab(){
       <td class="num ${summary2027MetricClass(v.bg26)}">${cells[0]}</td>
       <td class="num ${summary2027MetricClass(v.act26)}">${cells[1]}</td>
       <td class="num ${summary2027MetricClass(v.actPct)}">${cells[2]}</td>
-      <td class="num ${summary2027MetricClass(v.vacant)}">${cells[3]}</td>
+      <td class="num ${summary2027MetricClass(v.vacant)}">${Number(v.vacant)!==0
+        ? `<button type="button" class="summary2027-vacant-btn" onclick="openSummary2027VacantPopover(event,${rowIndex})" title="คลิกดูหน่วยงานและตำแหน่งที่เป็น Vacant"><span>${cells[3]}</span><span class="summary2027-vacant-hint" aria-hidden="true"></span></button>`
+        : cells[3]}</td>
       <td class="num ${summary2027MetricClass(v.vacantPct)}">${cells[4]}</td>
       <td class="num ${summary2027MetricClass(v.bg27Change)}">${cells[5]}</td>
       <td class="num ${summary2027MetricClass(v.bg27ChangePct)}">${cells[6]}</td>
@@ -6578,13 +6843,16 @@ function renderSummary2027Tab(){
             <th colspan="11">สรุปแผนอัตรากำลังคนประจำปี 2027</th>
           </tr>
           <tr>
-            <th rowspan="2" class="sticky-col head-no">No</th>
-            <th rowspan="2" class="sticky-col-2 head-bu">BU</th>
-            <th colspan="1" class="head-bg26">BG2026</th>
-            <th colspan="2" class="head-act26">ACT26</th>
-            <th colspan="2" class="head-vacant">Vacant (RQ26 On Process)</th>
+            <th rowspan="3" class="sticky-col head-no">No</th>
+            <th rowspan="3" class="sticky-col-2 head-bu">BU</th>
+            <th rowspan="2" class="head-bg26">BG2026</th>
+            <th rowspan="2" colspan="2" class="head-act26">ACT26</th>
+            <th rowspan="2" colspan="2" class="head-vacant">Vacant</th>
+            <th colspan="4" class="head-bg27-top">BG2027 H/C</th>
+          </tr>
+          <tr>
             <th colspan="2" class="head-change-group">Total เพิ่ม/ลด อัตรา</th>
-            <th colspan="2" class="head-bg27-group">BG2027 H/C จาก ACT2026</th>
+            <th colspan="2" class="head-bg27-group">BG2027 H/C</th>
           </tr>
           <tr>
             <th class="head-bg26">Total H/C</th>
@@ -6593,9 +6861,9 @@ function renderSummary2027Tab(){
             <th class="head-vacant">Total H/C</th>
             <th class="head-vacant">% Vacant</th>
             <th class="head-change-group">Total H/C</th>
-            <th class="head-change-group">% H/C</th>
+            <th class="head-change-group">% H/C เพิ่ม BG2026</th>
             <th class="head-bg27-group">Total H/C</th>
-            <th class="head-bg27-group">% H/C</th>
+            <th class="head-bg27-group">% H/C เพิ่ม ACT2026</th>
           </tr>
         </thead>
         <tbody>${tableRows}</tbody>
@@ -6627,9 +6895,16 @@ async function loadSummary2027Tab(force=false){
   renderSummary2027Loading();
 
   try{
-    const [levelRows,hireRows]=await Promise.all([
+    const [levelRows,hireRows,positionRows]=await Promise.all([
       fetchExcelLevelRows(orgIds),
-      fetchExcelHire2027Rows(orgIds)
+      fetchExcelHire2027Rows(orgIds),
+      fetchAllScopedRows(
+        'workforce_position_summaries',
+        'ulhana_id,level,position_name,rq26_on_process',
+        orgIds,
+        [],
+        [{column:'ulhana_id'},{column:'level'},{column:'position_name'}]
+      )
     ]);
 
     state.summary2027={
@@ -6637,6 +6912,8 @@ async function loadSummary2027Tab(force=false){
       loading:false,
       summaryByOrg:groupLevelRowsByOrg(levelRows),
       hireByOrg:groupHire2027RowsByOrg(hireRows),
+      positionRows:positionRows||[],
+      displayRows:[],
       loadedAt:new Date().toISOString()
     };
 
